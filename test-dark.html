@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТВОЙТРЕНЕР - Тест темной темы</title>
+    <link rel="stylesheet" href="style.css?v=5.2">
+    <script src="telegram-theme.js?v=1.1"></script>
+    <style>
+        /* Принудительно применяем темную тему для тестирования */
+        :root {
+            --tg-bg-color: #17212b !important;
+            --tg-text-color: #ffffff !important;
+            --tg-hint-color: #708499 !important;
+            --tg-link-color: #6ab7ff !important;
+            --tg-button-color: #5288c1 !important;
+            --tg-button-text-color: #ffffff !important;
+            --tg-secondary-bg-color: #232e3c !important;
+            --tg-header-bg-color: #17212b !important;
+        }
+        
+        body {
+            background-color: var(--tg-bg-color) !important;
+            color: var(--tg-text-color) !important;
+        }
+        
+        .test-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10000;
+        }
+        
+        .test-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body class="telegram-theme telegram-dark">
+    <div class="test-panel">
+        <div>🧪 Тест темной темы</div>
+        <button class="test-btn" onclick="toggleTestTheme()">Переключить</button>
+        <button class="test-btn" onclick="window.location.href='index.html'">На главную</button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-overlay" class="loading-screen">
+        <h1>ТВОЙТРЕНЕР</h1>
+        <div class="loading-icon">
+            <div class="spinner"></div>
+        </div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="container">
+        <div class="header">
+            <a href="#" class="close-btn" onclick="closeApp()">Закрыть</a>
+            <h1>ТВОЙТРЕНЕР</h1>
+            <p class="subtitle">мини-приложение</p>
+            <button class="menu-btn" onclick="toggleMenu()">⋯</button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="main-content">
+                <h2 class="main-title">Главная панель</h2>
+                <p class="welcome-text">Добро пожаловать в фитнес-помощник!</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.996 2.996 0 0 0 17.06 7c-.8 0-1.54.5-1.85 1.26l-1.97 5.91L9.5 12.5 8.18 10H8c-1.1 0-2 .9-2 2v8h2v-2h12v2h2zM12.5 11.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm-6-7c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm1.5 2h-3C4.46 6.5 4 6.96 4 7.5v6h1.5v7h3v-7H10v-6c0-.54-.46-1-1-1z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">Всего клиентов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29l-1.43-1.43z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-number">45</div>
+                        <div class="stat-label">Всего тренировок</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-number">38</div>
+                        <div class="stat-label">Завершено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.89-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Тренировок сегодня</div>
+                    </div>
+                </div>
+
+                <h3 class="quick-actions-title">Быстрые действия</h3>
+                <div class="actions-grid">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                        </div>
+                        <div class="action-label">Добавить клиента</div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.89-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                        </div>
+                        <div class="action-label">Запланировать тренировку</div>
+                    </div>
+                </div>
+
+                <div class="schedule-section">
+                    <h3 class="schedule-title">Расписание на сегодня</h3>
+                    <div class="empty-state">
+                        <div class="icon">📅</div>
+                        <h3>Нет тренировок</h3>
+                        <p>На сегодня тренировки не запланированы</p>
+                    </div>
+                </div>
+
+                <div class="clients-section">
+                    <h3 class="clients-title">Последние клиенты</h3>
+                    <div class="empty-state">
+                        <div class="icon">👥</div>
+                        <h3>Нет клиентов</h3>
+                        <p>Добавьте первого клиента</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                </div>
+                <span>Главная</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.996 2.996 0 0 0 17.06 7c-.8 0-1.54.5-1.85 1.26l-1.97 5.91L9.5 12.5 8.18 10H8c-1.1 0-2 .9-2 2v8h2v-2h12v2h2zM12.5 11.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm-6-7c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm1.5 2h-3C4.46 6.5 4 6.96 4 7.5v6h1.5v7h3v-7H10v-6c0-.54-.46-1-1-1z"/>
+                    </svg>
+                </div>
+                <span>Клиенты</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29l-1.43-1.43z"/>
+                    </svg>
+                </div>
+                <span>Тренировки</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                    </svg>
+                </div>
+                <span>Аналитика</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                    </svg>
+                </div>
+                <span>Настройки</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        let isDarkTheme = true;
+        
+        function toggleTestTheme() {
+            const root = document.documentElement;
+            const body = document.body;
+            
+            if (isDarkTheme) {
+                // Светлая тема
+                root.style.setProperty('--tg-bg-color', '#ffffff');
+                root.style.setProperty('--tg-text-color', '#000000');
+                root.style.setProperty('--tg-hint-color', '#999999');
+                root.style.setProperty('--tg-secondary-bg-color', '#f5f5f5');
+                body.classList.remove('telegram-dark');
+                body.classList.add('telegram-light');
+            } else {
+                // Темная тема
+                root.style.setProperty('--tg-bg-color', '#17212b');
+                root.style.setProperty('--tg-text-color', '#ffffff');
+                root.style.setProperty('--tg-hint-color', '#708499');
+                root.style.setProperty('--tg-secondary-bg-color', '#232e3c');
+                body.classList.remove('telegram-light');
+                body.classList.add('telegram-dark');
+            }
+            
+            isDarkTheme = !isDarkTheme;
+        }
+        
+        // Скрыть экран загрузки
+        setTimeout(() => {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }, 1000);
+        
+        function closeApp() {
+            window.close();
+        }
+        
+        function toggleMenu() {
+            alert('Меню в разработке');
+        }
+    </script>
+</body>
+</html>

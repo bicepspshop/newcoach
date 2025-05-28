@@ -964,6 +964,14 @@ body.telegram-theme .header {
     border-bottom-color: var(--tg-secondary-bg-color);
 }
 
+body.telegram-theme .header h1 {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .header .subtitle {
+    color: var(--tg-hint-color);
+}
+
 body.telegram-theme .main-title {
     color: var(--tg-text-color);
 }
@@ -979,6 +987,24 @@ body.telegram-theme .client-item,
 body.telegram-theme .workout-card,
 body.telegram-theme .settings-item {
     background-color: var(--tg-secondary-bg-color);
+}
+
+body.telegram-theme .stat-number {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .stat-label {
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .action-label {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .quick-actions-title,
+body.telegram-theme .schedule-title,
+body.telegram-theme .clients-title {
+    color: var(--tg-text-color);
 }
 
 body.telegram-theme .stat-icon,
@@ -1018,6 +1044,39 @@ body.telegram-theme .form-group textarea {
 
 body.telegram-theme .form-group label {
     color: var(--tg-text-color);
+}
+
+body.telegram-theme .empty-state {
+    background-color: var(--tg-secondary-bg-color);
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .empty-state h3 {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .empty-state p {
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .empty-state .icon {
+    opacity: 0.6;
+    filter: grayscale(0.3);
+}
+
+body.telegram-theme .schedule-info h3,
+body.telegram-theme .client-info h3,
+body.telegram-theme .workout-title {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .schedule-info p,
+body.telegram-theme .client-info p {
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .workout-info > div {
+    color: var(--tg-hint-color);
 }
 
 /* Dark theme support */
@@ -1098,10 +1157,20 @@ body.telegram-theme .form-group label {
     
     body:not(.telegram-theme) .empty-state {
         background-color: #2C2C2E;
+        color: #8E8E93;
     }
     
     body:not(.telegram-theme) .empty-state h3 {
         color: #ffffff;
+    }
+    
+    body:not(.telegram-theme) .empty-state p {
+        color: #8E8E93;
+    }
+    
+    body:not(.telegram-theme) .empty-state .icon {
+        opacity: 0.6;
+        filter: grayscale(0.3);
     }
 }
 

@@ -53,8 +53,8 @@ class TelegramTheme {
         root.style.setProperty('--tg-link-color', theme.link_color || '#007AFF');
         root.style.setProperty('--tg-button-color', theme.button_color || '#007AFF');
         root.style.setProperty('--tg-button-text-color', theme.button_text_color || '#ffffff');
-        root.style.setProperty('--tg-secondary-bg-color', theme.secondary_bg_color || '#f5f5f5');
-        root.style.setProperty('--tg-header-bg-color', theme.header_bg_color || '#ffffff');
+        root.style.setProperty('--tg-secondary-bg-color', theme.secondary_bg_color || (isDark ? this.lightenColor(theme.bg_color, 0.1) : '#f5f5f5'));
+        root.style.setProperty('--tg-header-bg-color', theme.header_bg_color || theme.bg_color || '#ffffff');
         
         // Применяем классы темы
         document.body.classList.remove('telegram-theme', 'telegram-dark', 'telegram-light');
@@ -62,7 +62,6 @@ class TelegramTheme {
         
         if (isDark) {
             document.body.classList.add('telegram-dark');
-            root.style.setProperty('--tg-secondary-bg-color', this.lightenColor(theme.bg_color, 0.1));
         } else {
             document.body.classList.add('telegram-light');
         }
@@ -115,6 +114,8 @@ class TelegramTheme {
         root.style.setProperty('--tg-button-text-color', '#ffffff');
         root.style.setProperty('--tg-secondary-bg-color', '#232e3c');
         root.style.setProperty('--tg-header-bg-color', '#17212b');
+        
+        console.log('Applied dark theme fallback');
     }
 
     setLightTheme() {
@@ -127,6 +128,8 @@ class TelegramTheme {
         root.style.setProperty('--tg-button-text-color', '#ffffff');
         root.style.setProperty('--tg-secondary-bg-color', '#f5f5f5');
         root.style.setProperty('--tg-header-bg-color', '#ffffff');
+        
+        console.log('Applied light theme fallback');
     }
 
     isDarkColor(color) {
