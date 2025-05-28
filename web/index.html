@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="icon-fix.css?v=4.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Professional Header -->
+        <header class="header">
+            <h1>Coach Assistant</h1>
+            <div class="user-info">
+                <span id="user-name">Загрузка...</span>
+            </div>
+        </header>
+
+        <!-- Professional Navigation with Icons -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                </span>
+                <span class="nav-text">Обзор</span>
+            </button>
+            <button class="nav-tab" data-tab="clients">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </span>
+                <span class="nav-text">Клиенты</span>
+            </button>
+            <button class="nav-tab" data-tab="workouts">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6.5 6.5h11v11h-11z"/>
+                        <path d="M4 4l2.5 2.5"/>
+                        <path d="M17.5 17.5L20 20"/>
+                        <path d="M4 20l2.5-2.5"/>
+                        <path d="M17.5 6.5L20 4"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                </span>
+                <span class="nav-text">Тренировки</span>
+            </button>
+        </nav>
+
+        <!-- Dashboard Tab with Sophisticated Stats -->
+        <section id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon clients"></div>
+                    <div class="stat-number" id="clients-count">0</div>
+                    <div class="stat-label">Клиентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon workouts"></div>
+                    <div class="stat-number" id="workouts-count">0</div>
+                    <div class="stat-label">Тренировок</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon completed"></div>
+                    <div class="stat-number" id="completed-workouts">0</div>
+                    <div class="stat-label">Завершено</div>
+                </div>
+            </div>
+
+            <div class="recent-section">
+                <h3>
+                    <span class="section-icon small">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </span>
+                    Ближайшие тренировки
+                </h3>
+                <div id="recent-workouts" class="recent-workouts">
+                    <div class="loading">Загрузка данных...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sophisticated Clients Tab -->
+        <section id="clients" class="tab-content">
+            <div class="section-header">
+                <h2>
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </span>
+                    Клиенты
+                </h2>
+                <button class="btn btn-primary" id="add-client-btn">
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </span>
+                    Добавить
+                </button>
+            </div>
+            
+            <div id="clients-list" class="clients-list">
+                <div class="loading">Загрузка клиентов...</div>
+            </div>
+        </section>
+
+        <!-- Sophisticated Workouts Tab -->
+        <section id="workouts" class="tab-content">
+            <div class="section-header">
+                <h2>
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6.5 6.5h11v11h-11z"/>
+                            <path d="M4 4l2.5 2.5"/>
+                            <path d="M17.5 17.5L20 20"/>
+                            <path d="M4 20l2.5-2.5"/>
+                            <path d="M17.5 6.5L20 4"/>
+                            <circle cx="12" cy="12" r="2"/>
+                        </svg>
+                    </span>
+                    Тренировки
+                </h2>
+                <button class="btn btn-primary" id="add-workout-btn">
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </span>
+                    Создать
+                </button>
+            </div>
+            
+            <div id="workouts-list" class="workouts-list">
+                <div class="loading">Загрузка тренировок...</div>
+            </div>
+        </section>
+
+        <!-- Elegant Add Client Modal -->
+        <div id="add-client-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Добавить клиента</h3>
+                    <button class="close-btn" data-modal="add-client-modal">&times;</button>
+                </div>
+                <form id="add-client-form">
+                    <div class="form-group">
+                        <label for="client-name">Имя клиента</label>
+                        <input type="text" id="client-name" placeholder="Введите имя клиента" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-goal">Цель тренировок</label>
+                        <select id="client-goal" required>
+                            <option value="">Выберите цель</option>
+                            <option value="weight_loss">Снижение веса</option>
+                            <option value="muscle_gain">Набор мышечной массы</option>
+                            <option value="strength_building">Развитие силы</option>
+                            <option value="endurance_training">Развитие выносливости</option>
+                            <option value="marathon_prep">Подготовка к марафону</option>
+                            <option value="general_fitness">Общая физическая подготовка</option>
+                            <option value="body_recomposition">Изменение композиции тела</option>
+                            <option value="athletic_performance">Спортивные результаты</option>
+                            <option value="injury_recovery">Восстановление после травмы</option>
+                            <option value="maintenance">Поддержание формы</option>
+                            <option value="flexibility_mobility">Гибкость и подвижность</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Номер телефона</label>
+                        <input type="tel" id="client-phone" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-notes">Заметки</label>
+                        <textarea id="client-notes" rows="3" placeholder="Особенности, медицинские ограничения, предпочтения..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-modal="add-client-modal">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Добавить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Elegant Add Workout Modal -->
+        <div id="add-workout-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Создать тренировку</h3>
+                    <button class="close-btn" data-modal="add-workout-modal">&times;</button>
+                </div>
+                <form id="add-workout-form">
+                    <div class="form-group">
+                        <label for="workout-client">Выбрать клиента</label>
+                        <select id="workout-client" required>
+                            <option value="">Выберите клиента</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-type">Тип тренировки</label>
+                        <select id="workout-type" required>
+                            <option value="">Выберите тип</option>
+                            <option value="cardio">Кардио</option>
+                            <option value="strength_training">Силовая тренировка</option>
+                            <option value="powerlifting">Пауэрлифтинг</option>
+                            <option value="bodybuilding">Бодибилдинг</option>
+                            <option value="leg_day">День ног</option>
+                            <option value="upper_body">Верх тела</option>
+                            <option value="push_day">День жимовых</option>
+                            <option value="pull_day">День тяговых</option>
+                            <option value="full_body">Полное тело</option>
+                            <option value="core_abs">Пресс и кор</option>
+                            <option value="hiit">Высокоинтенсивные интервалы</option>
+                            <option value="endurance">Выносливость</option>
+                            <option value="flexibility">Гибкость и растяжка</option>
+                            <option value="sport_specific">Специализированная</option>
+                            <option value="recovery">Восстановительная</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-date">Дата и время</label>
+                        <input type="datetime-local" id="workout-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-notes">Описание тренировки</label>
+                        <textarea id="workout-notes" rows="4" placeholder="Упражнения, план тренировки, особые указания..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-modal="add-workout-modal">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Создать
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Professional Loading overlay with Barbell -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="barbell-loader">
+                <div class="barbell">
+                    <div class="weight left"></div>
+                    <div class="bar"></div>
+                    <div class="weight right"></div>
+                </div>
+            </div>
+            <div class="loading-text">Загрузка...</div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2.0"></script>
+</body>
+</html>

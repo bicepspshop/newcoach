@@ -1,0 +1,158 @@
+/* Comprehensive Icon Size Fix - All Icons */
+
+/* Navigation Tab Icons */
+.nav-icon {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.nav-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke-width: 1.5 !important;
+}
+
+/* Section Header Icons */
+.section-icon {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+}
+
+.section-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke-width: 1.5 !important;
+}
+
+.section-icon.small {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.section-icon.small svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke-width: 1.5 !important;
+}
+
+/* Button Icons */
+.btn-icon {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+.btn-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+    stroke-width: 1.5 !important;
+}
+
+/* Stats Card Icons */
+.stat-icon {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+}
+
+.stat-icon::before,
+.stat-icon.clients::before,
+.stat-icon.workouts::before,
+.stat-icon.completed::before {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+}
+
+/* Modal Close Button */
+.close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 18px !important;
+}
+
+/* Loading Spinner */
+.loading::before {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.barbell-loader {
+    width: 60px !important;
+    height: 24px !important;
+}
+
+.mini-spinner {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Empty State Icons */
+.empty-state .icon {
+    font-size: 40px !important;
+}
+
+/* Fix for schedule toggle arrow */
+.schedule-toggle .arrow {
+    font-size: 10px !important;
+}
+
+/* Ensure all SVGs have consistent sizing */
+svg {
+    flex-shrink: 0 !important;
+}
+
+/* Navigation specific fixes */
+.nav-tab {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.nav-text {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
+
+/* Section header layout fix */
+.section-header h2 {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Button layout fix */
+.btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
