@@ -620,17 +620,46 @@ input:checked + .slider:before {
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #4A90E2;
-    border-top: 3px solid #7FB3D3;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+    width: 50px;
+    height: 50px;
+    color: #4A90E2;
+    animation: spin 2s linear infinite;
+}
+
+.dumbbell-icon {
+    width: 50px;
+    height: 50px;
+    color: #4A90E2;
+    animation: dumbbellLift 1.5s ease-in-out infinite;
+    transform-origin: center;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes dumbbellLift {
+    0% { 
+        transform: rotate(-15deg) scale(0.9);
+        opacity: 0.8;
+    }
+    25% {
+        transform: rotate(-5deg) scale(0.95);
+        opacity: 0.9;
+    }
+    50% { 
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    75% {
+        transform: rotate(5deg) scale(0.95);
+        opacity: 0.9;
+    }
+    100% { 
+        transform: rotate(-15deg) scale(0.9);
+        opacity: 0.8;
+    }
 }
 
 /* Modal Styles */
