@@ -138,6 +138,12 @@ body {
     font-size: 18px;
 }
 
+.stat-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
 .stat-number {
     font-size: 28px;
     font-weight: 700;
@@ -197,6 +203,12 @@ body {
     justify-content: center;
     color: white;
     font-size: 18px;
+}
+
+.action-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
 }
 
 .action-label {
@@ -552,6 +564,15 @@ input:checked + .slider:before {
 .nav-icon {
     font-size: 24px;
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
 }
 
 /* Loading Screen */
@@ -916,87 +937,190 @@ input:checked + .slider:before {
     }
 }
 
+/* Telegram theme support */
+:root {
+    --tg-bg-color: #ffffff;
+    --tg-text-color: #000000;
+    --tg-hint-color: #999999;
+    --tg-link-color: #007AFF;
+    --tg-button-color: #007AFF;
+    --tg-button-text-color: #ffffff;
+    --tg-secondary-bg-color: #f5f5f5;
+    --tg-header-bg-color: #ffffff;
+}
+
+/* Apply Telegram theme when class is present */
+body.telegram-theme {
+    background-color: var(--tg-bg-color);
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .container {
+    background-color: var(--tg-bg-color);
+}
+
+body.telegram-theme .header {
+    background-color: var(--tg-header-bg-color);
+    border-bottom-color: var(--tg-secondary-bg-color);
+}
+
+body.telegram-theme .main-title {
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .welcome-text {
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .stat-card,
+body.telegram-theme .action-card,
+body.telegram-theme .schedule-item,
+body.telegram-theme .client-item,
+body.telegram-theme .workout-card,
+body.telegram-theme .settings-item {
+    background-color: var(--tg-secondary-bg-color);
+}
+
+body.telegram-theme .stat-icon,
+body.telegram-theme .action-icon {
+    background-color: var(--tg-button-color);
+    color: var(--tg-button-text-color);
+}
+
+body.telegram-theme .btn-primary {
+    background-color: var(--tg-button-color);
+    color: var(--tg-button-text-color);
+}
+
+body.telegram-theme .nav-item.active {
+    color: var(--tg-link-color);
+}
+
+body.telegram-theme .nav-item {
+    color: var(--tg-hint-color);
+}
+
+body.telegram-theme .bottom-nav {
+    background-color: var(--tg-bg-color);
+    border-top-color: var(--tg-secondary-bg-color);
+}
+
+body.telegram-theme .modal-content {
+    background-color: var(--tg-bg-color);
+}
+
+body.telegram-theme .form-group input,
+body.telegram-theme .form-group select,
+body.telegram-theme .form-group textarea {
+    background-color: var(--tg-secondary-bg-color);
+    color: var(--tg-text-color);
+}
+
+body.telegram-theme .form-group label {
+    color: var(--tg-text-color);
+}
+
 /* Dark theme support */
 @media (prefers-color-scheme: dark) {
-    body {
+    body:not(.telegram-theme) {
         background-color: #1C1C1E;
         color: #ffffff;
     }
     
-    .container {
+    body:not(.telegram-theme) .container {
         background-color: #1C1C1E;
     }
     
-    .header {
+    body:not(.telegram-theme) .header {
         background-color: #1C1C1E;
         border-bottom-color: #3A3A3C;
     }
     
-    .main-title {
+    body:not(.telegram-theme) .main-title {
         color: #ffffff;
     }
     
-    .stat-card,
-    .action-card,
-    .schedule-item,
-    .client-item,
-    .workout-card,
-    .settings-item {
+    body:not(.telegram-theme) .stat-card,
+    body:not(.telegram-theme) .action-card,
+    body:not(.telegram-theme) .schedule-item,
+    body:not(.telegram-theme) .client-item,
+    body:not(.telegram-theme) .workout-card,
+    body:not(.telegram-theme) .settings-item {
         background-color: #2C2C2E;
     }
     
-    .stat-card:hover,
-    .action-card:hover,
-    .schedule-item:hover,
-    .client-item:hover {
+    body:not(.telegram-theme) .stat-card:hover,
+    body:not(.telegram-theme) .action-card:hover,
+    body:not(.telegram-theme) .schedule-item:hover,
+    body:not(.telegram-theme) .client-item:hover {
         background-color: #3A3A3C;
     }
     
-    .bottom-nav {
+    body:not(.telegram-theme) .bottom-nav {
         background-color: #1C1C1E;
         border-top-color: #3A3A3C;
     }
     
-    .nav-item:hover {
+    body:not(.telegram-theme) .nav-item:hover {
         background-color: #2C2C2E;
     }
     
-    .modal-content {
+    body:not(.telegram-theme) .modal-content {
         background-color: #1C1C1E;
     }
     
-    .modal-header {
+    body:not(.telegram-theme) .modal-header {
         border-bottom-color: #3A3A3C;
     }
     
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
+    body:not(.telegram-theme) .form-group input,
+    body:not(.telegram-theme) .form-group select,
+    body:not(.telegram-theme) .form-group textarea {
         background-color: #2C2C2E;
         border-color: #3A3A3C;
         color: #ffffff;
     }
     
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
+    body:not(.telegram-theme) .form-group input:focus,
+    body:not(.telegram-theme) .form-group select:focus,
+    body:not(.telegram-theme) .form-group textarea:focus {
         background-color: #3A3A3C;
     }
     
-    .btn-secondary {
+    body:not(.telegram-theme) .btn-secondary {
         background-color: #2C2C2E;
         color: #ffffff;
     }
     
-    .btn-secondary:hover {
+    body:not(.telegram-theme) .btn-secondary:hover {
         background-color: #3A3A3C;
     }
     
-    .empty-state {
+    body:not(.telegram-theme) .empty-state {
         background-color: #2C2C2E;
     }
     
-    .empty-state h3 {
+    body:not(.telegram-theme) .empty-state h3 {
         color: #ffffff;
     }
+}
+
+/* Telegram dark theme specific styles */
+body.telegram-dark {
+    --tg-bg-color: #17212b;
+    --tg-text-color: #ffffff;
+    --tg-hint-color: #708499;
+    --tg-link-color: #6ab7ff;
+    --tg-button-color: #5288c1;
+    --tg-button-text-color: #ffffff;
+    --tg-secondary-bg-color: #232e3c;
+    --tg-header-bg-color: #17212b;
+}
+
+/* Icon styling for SVG */
+.stat-icon svg,
+.action-icon svg,
+.nav-icon svg {
+    color: inherit;
+    fill: currentColor;
 }

@@ -22,9 +22,6 @@ document.addEventListener('DOMContentLoaded', initApp);
 function initTelegramWebApp() {
     const tg = CONFIG.telegramWebApp;
     if (tg) {
-        tg.ready();
-        tg.expand();
-        
         // Show user info
         if (tg.initDataUnsafe?.user) {
             const user = tg.initDataUnsafe.user;
@@ -523,8 +520,37 @@ function setupEventListeners() {
         navItem.addEventListener('click', (e) => {
             e.preventDefault();
             const tabName = navItem.dataset.tab;
+            
+            // Haptic feedback
+            if (window.telegramTheme) {
+                window.telegramTheme.hapticFeedback('light');
+            }
+            
             switchToTab(tabName);
         });
+    });
+
+    // Add haptic feedback to buttons and interactive elements
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('.btn, .action-card, .stat-card, .client-item, .workout-card, .schedule-item')) {
+            if (window.telegramTheme) {
+                window.telegramTheme.hapticFeedback('light');
+            }
+        }
+        
+        // Success feedback for primary actions
+        if (e.target.matches('.btn-primary')) {
+            if (window.telegramTheme) {
+                window.telegramTheme.hapticFeedback('success');
+            }
+        }
+        
+        // Warning feedback for delete actions
+        if (e.target.matches('.btn-danger, .delete-btn')) {
+            if (window.telegramTheme) {
+                window.telegramTheme.hapticFeedback('warning');
+            }
+        }
     });
 
     document.getElementById('add-client-form').addEventListener('submit', handleAddClient);
@@ -637,7 +663,20 @@ async function deleteClient(clientId) {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
     
-    if (!confirm(`Удалить клиента "${client.name}"?\n\nЭто действие нельзя отменить.`)) {
+    const confirmDelete = () => {
+        return new Promise((resolve) => {
+            if (window.telegramTheme) {
+                window.telegramTheme.showConfirm(
+                    `Удалить клиента "${client.name}"?\n\nЭто действие нельзя отменить.`, 
+                    resolve
+                );
+            } else {
+                resolve(confirm(`Удалить клиента "${client.name}"?\n\nЭто действие нельзя отменить.`));
+            }
+        });
+    };
+    
+    if (!(await confirmDelete())) {
         return;
     }
     
@@ -655,7 +694,17 @@ async function deleteClient(clientId) {
 }
 
 async function deleteWorkout(workoutId) {
-    if (!confirm('Удалить тренировку?')) return;
+    const confirmDelete = () => {
+        return new Promise((resolve) => {
+            if (window.telegramTheme) {
+                window.telegramTheme.showConfirm('Удалить тренировку?', resolve);
+            } else {
+                resolve(confirm('Удалить тренировку?'));
+            }
+        });
+    };
+    
+    if (!(await confirmDelete())) return;
     
     try {
         showLoading(true);
@@ -685,7 +734,17 @@ async function completeWorkout(workoutId) {
 }
 
 async function cancelWorkout(workoutId) {
-    if (!confirm('Отменить тренировку?')) return;
+    const confirmCancel = () => {
+        return new Promise((resolve) => {
+            if (window.telegramTheme) {
+                window.telegramTheme.showConfirm('Отменить тренировку?', resolve);
+            } else {
+                resolve(confirm('Отменить тренировку?'));
+            }
+        });
+    };
+    
+    if (!(await confirmCancel())) return;
     
     try {
         showLoading(true);
@@ -724,8 +783,8 @@ function openAddWorkoutModal() {
 }
 
 function closeApp() {
-    if (CONFIG.telegramWebApp) {
-        CONFIG.telegramWebApp.close();
+    if (window.telegramTheme) {
+        window.telegramTheme.close();
     } else {
         window.close();
     }
@@ -742,14 +801,27 @@ function switchToClientDetail(clientId) {
 
 // Utility functions
 function showError(message) {
-    if (CONFIG.telegramWebApp) {
-        CONFIG.telegramWebApp.showAlert(message);
+    // Error haptic feedback
+    if (window.telegramTheme) {
+        window.telegramTheme.hapticFeedback('error');
+        window.telegramTheme.showAlert(message);
     } else {
         alert(message);
     }
 }
 
 function showToast(message, type = 'success') {
+    // Haptic feedback based on toast type
+    if (window.telegramTheme) {
+        if (type === 'success') {
+            window.telegramTheme.hapticFeedback('success');
+        } else if (type === 'error') {
+            window.telegramTheme.hapticFeedback('error');
+        } else {
+            window.telegramTheme.hapticFeedback('light');
+        }
+    }
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
