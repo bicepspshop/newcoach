@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТВОЙТРЕНЕР</title>
+    <link rel="stylesheet" href="style.css?v=4.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-overlay" class="loading-screen">
+        <h1>ТВОЙТРЕНЕР</h1>
+        <div class="loading-icon">
+            <div class="spinner"></div>
+        </div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="container hidden">
+        <div class="header">
+            <a href="#" class="close-btn" onclick="closeApp()">Закрыть</a>
+            <h1>ТВОЙТРЕНЕР</h1>
+            <p class="subtitle">мини-приложение</p>
+            <button class="menu-btn" onclick="toggleMenu()">⋯</button>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="main-content">
+                <h2 class="main-title">Главная панель</h2>
+                <p class="welcome-text">Добро пожаловать в фитнес-помощник!</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-number" id="clients-count">0</div>
+                        <div class="stat-label">Всего клиентов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏋️</div>
+                        <div class="stat-number" id="workouts-count">0</div>
+                        <div class="stat-label">Всего тренировок</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number" id="completed-workouts">0</div>
+                        <div class="stat-label">Завершено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-number" id="today-workouts">0</div>
+                        <div class="stat-label">Тренировок сегодня</div>
+                    </div>
+                </div>
+
+                <h3 class="quick-actions-title">Быстрые действия</h3>
+                <div class="actions-grid">
+                    <div class="action-card" onclick="openAddClientModal()">
+                        <div class="action-icon">👤</div>
+                        <div class="action-label">Добавить клиента</div>
+                    </div>
+                    <div class="action-card" onclick="openAddWorkoutModal()">
+                        <div class="action-icon">📅</div>
+                        <div class="action-label">Запланировать тренировку</div>
+                    </div>
+                    <div class="action-card" onclick="switchToTab('analytics')">
+                        <div class="action-icon">📊</div>
+                        <div class="action-label">Аналитика</div>
+                    </div>
+                    <div class="action-card" onclick="switchToTab('settings')">
+                        <div class="action-icon">⚙️</div>
+                        <div class="action-label">Настройки</div>
+                    </div>
+                </div>
+
+                <div class="schedule-section">
+                    <h3 class="schedule-title">Расписание на сегодня</h3>
+                    <div id="today-schedule">
+                        <div class="loading">Загрузка расписания...</div>
+                    </div>
+                </div>
+
+                <div class="clients-section">
+                    <h3 class="clients-title">Последние клиенты</h3>
+                    <div id="recent-clients">
+                        <div class="loading">Загрузка клиентов...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clients Tab -->
+        <div id="clients" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Клиенты</h2>
+                <p class="welcome-text">Управление вашими клиентами</p>
+                
+                <div class="section-actions">
+                    <div class="action-card" onclick="openAddClientModal()">
+                        <div class="action-icon">➕</div>
+                        <div class="action-label">Добавить клиента</div>
+                    </div>
+                </div>
+
+                <div class="clients-list-section">
+                    <div id="clients-list">
+                        <div class="loading">Загрузка клиентов...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workouts Tab -->
+        <div id="workouts" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Тренировки</h2>
+                <p class="welcome-text">Управление тренировками</p>
+                
+                <div class="section-actions">
+                    <div class="action-card" onclick="openAddWorkoutModal()">
+                        <div class="action-icon">➕</div>
+                        <div class="action-label">Создать тренировку</div>
+                    </div>
+                </div>
+
+                <div class="workouts-list-section">
+                    <div id="workouts-list">
+                        <div class="loading">Загрузка тренировок...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Аналитика</h2>
+                <p class="welcome-text">Статистика и отчеты</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-number" id="monthly-income">0₽</div>
+                        <div class="stat-label">Доход за месяц</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-number" id="active-clients">0</div>
+                        <div class="stat-label">Активных клиентов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-number" id="completion-rate">0%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-number" id="avg-workouts">0</div>
+                        <div class="stat-label">Среднее в неделю</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Настройки</h2>
+                <p class="welcome-text">Настройки приложения</p>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">Общие настройки</h3>
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Уведомления</h4>
+                            <p>Получать уведомления о тренировках</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Тема</h4>
+                            <p>Автоматическая смена темы</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Client Modal -->
+        <div id="add-client-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Добавить клиента</h3>
+                    <button class="close-btn" onclick="closeModal('add-client-modal')">&times;</button>
+                </div>
+                <form id="add-client-form">
+                    <div class="form-group">
+                        <label for="client-name">Имя клиента</label>
+                        <input type="text" id="client-name" placeholder="Введите имя клиента" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-goal">Цель тренировок</label>
+                        <select id="client-goal" required>
+                            <option value="">Выберите цель</option>
+                            <option value="weight_loss">Снижение веса</option>
+                            <option value="muscle_gain">Набор мышечной массы</option>
+                            <option value="strength_building">Развитие силы</option>
+                            <option value="endurance_training">Развитие выносливости</option>
+                            <option value="marathon_prep">Подготовка к марафону</option>
+                            <option value="general_fitness">Общая физическая подготовка</option>
+                            <option value="body_recomposition">Изменение композиции тела</option>
+                            <option value="athletic_performance">Спортивные результаты</option>
+                            <option value="injury_recovery">Восстановление после травмы</option>
+                            <option value="maintenance">Поддержание формы</option>
+                            <option value="flexibility_mobility">Гибкость и подвижность</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Номер телефона</label>
+                        <input type="tel" id="client-phone" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-notes">Заметки</label>
+                        <textarea id="client-notes" rows="3" placeholder="Особенности, медицинские ограничения, предпочтения..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-client-modal')">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Добавить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Workout Modal -->
+        <div id="add-workout-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Создать тренировку</h3>
+                    <button class="close-btn" onclick="closeModal('add-workout-modal')">&times;</button>
+                </div>
+                <form id="add-workout-form">
+                    <div class="form-group">
+                        <label for="workout-client">Выбрать клиента</label>
+                        <select id="workout-client" required>
+                            <option value="">Выберите клиента</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-type">Тип тренировки</label>
+                        <select id="workout-type" required>
+                            <option value="">Выберите тип</option>
+                            <option value="cardio">Кардио</option>
+                            <option value="strength_training">Силовая тренировка</option>
+                            <option value="powerlifting">Пауэрлифтинг</option>
+                            <option value="bodybuilding">Бодибилдинг</option>
+                            <option value="leg_day">День ног</option>
+                            <option value="upper_body">Верх тела</option>
+                            <option value="push_day">День жимовых</option>
+                            <option value="pull_day">День тяговых</option>
+                            <option value="full_body">Полное тело</option>
+                            <option value="core_abs">Пресс и кор</option>
+                            <option value="hiit">Высокоинтенсивные интервалы</option>
+                            <option value="endurance">Выносливость</option>
+                            <option value="flexibility">Гибкость и растяжка</option>
+                            <option value="sport_specific">Специализированная</option>
+                            <option value="recovery">Восстановительная</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-date">Дата и время</label>
+                        <input type="datetime-local" id="workout-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="workout-notes">Описание тренировки</label>
+                        <textarea id="workout-notes" rows="4" placeholder="Упражнения, план тренировки, особые указания..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-workout-modal')">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Создать
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-tab="dashboard">
+                <div class="nav-icon">🏠</div>
+                <span>Главная</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="clients">
+                <div class="nav-icon">👥</div>
+                <span>Клиенты</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="workouts">
+                <div class="nav-icon">🏋️</div>
+                <span>Тренировки</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="analytics">
+                <div class="nav-icon">📊</div>
+                <span>Аналитика</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="settings">
+                <div class="nav-icon">⚙️</div>
+                <span>Настройки</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="script.js?v=4.0"></script>
+</body>
+</html>

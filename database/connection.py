@@ -20,7 +20,8 @@ class DatabaseManager:
             self.database_url,
             min_size=1,
             max_size=10,
-            command_timeout=60
+            command_timeout=60,
+            statement_cache_size=0  # Disable prepared statement cache for pgbouncer
         )
         print("✅ Database connected successfully")
     
