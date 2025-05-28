@@ -1,0 +1,8 @@
+build:
+  - pip install -r requirements.txt
+
+start:
+  - python server.py
+
+env:
+  - PORT=10000
