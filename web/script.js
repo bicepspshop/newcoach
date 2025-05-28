@@ -1,136 +1,6 @@
-// Client schedule management
-let clientScheduleCache = new Map();
-
-async function toggleClientSchedule(clientId) {
-    const scheduleContainer = document.getElementById(`schedule-${clientId}`);
-    const toggleButton = document.querySelector(`[data-client-id="${clientId}"].schedule-toggle`);
-    
-    if (!scheduleContainer || !toggleButton) return;
-    
-    const isExpanded = scheduleContainer.classList.contains('expanded');
-    
-    if (isExpanded) {
-        // Collapse
-        scheduleContainer.classList.remove('expanded');
-        toggleButton.classList.remove('active');
-
-    } else {
-        // Expand
-        scheduleContainer.classList.add('expanded');
-        toggleButton.classList.add('active');
-        
-        // Load schedule if not already loaded
-        if (!clientScheduleCache.has(clientId)) {
-            await loadClientSchedule(clientId);
-        }
-
-    }
-}
-
-async function loadClientSchedule(clientId) {
-    const scheduleContainer = document.getElementById(`schedule-${clientId}`);
-    if (!scheduleContainer) return;
-    
-    // Show loading
-    scheduleContainer.innerHTML = `
-        <div class="schedule-loading">
-            <div class="mini-spinner"></div>
-            Загрузка расписания...
-        </div>
-    `;
-    
-    try {
-        // Get client workouts
-        const clientWorkouts = workouts.filter(w => w.client_id === clientId)
-            .filter(w => new Date(w.date) > new Date()) // Only future workouts
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 10); // Limit to 10 upcoming workouts
-        
-        // Cache the result
-        clientScheduleCache.set(clientId, clientWorkouts);
-        
-        // Render schedule
-        renderClientSchedule(clientId, clientWorkouts);
-        
-    } catch (error) {
-        console.error('Error loading client schedule:', error);
-        scheduleContainer.innerHTML = `
-            <div class="schedule-empty">
-                <div class="schedule-empty-icon">❌</div>
-                Ошибка загрузки расписания
-            </div>
-        `;
-    }
-}
-
-function renderClientSchedule(clientId, clientWorkouts) {
-    const scheduleContainer = document.getElementById(`schedule-${clientId}`);
-    if (!scheduleContainer) return;
-    
-    if (!clientWorkouts || clientWorkouts.length === 0) {
-        scheduleContainer.innerHTML = `
-            <div class="schedule-empty">
-                <div class="schedule-empty-icon">📅</div>
-                Нет запланированных тренировок
-            </div>
-        `;
-        return;
-    }
-    
-    const scheduleHTML = `
-        <div class="schedule-header">
-            <div class="schedule-title">Ближайшие тренировки</div>
-            <div class="schedule-count">${clientWorkouts.length}</div>
-        </div>
-        <div class="schedule-list">
-            ${clientWorkouts.map((workout, index) => {
-                const date = new Date(workout.date);
-                const isToday = date.toDateString() === new Date().toDateString();
-                const isTomorrow = date.toDateString() === new Date(Date.now() + 86400000).toDateString();
-                
-                let dateText = date.toLocaleDateString('ru-RU');
-                if (isToday) dateText = 'Сегодня';
-                else if (isTomorrow) dateText = 'Завтра';
-                
-                return `
-                    <div class="mini-workout-card">
-                        <div class="workout-status-indicator ${workout.status}"></div>
-                        <div class="mini-workout-header">
-                            <div class="mini-workout-type">
-                                ${workout.workout_type ? getWorkoutTypeDisplayName(workout.workout_type) : 'Тренировка'}
-                            </div>
-                            <div class="mini-workout-date">${dateText}</div>
-                        </div>
-                        <div class="mini-workout-time">
-                            Время: ${date.toLocaleTimeString('ru-RU').slice(0, 5)}
-                        </div>
-                        ${workout.notes ? `
-                            <div class="mini-workout-notes">
-                                ${UI.escapeHtml(workout.notes.slice(0, 80))}${workout.notes.length > 80 ? '...' : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('')}
-        </div>
-    `;
-    
-    scheduleContainer.innerHTML = scheduleHTML;
-}
-
-// Refresh client schedule when workouts change
-function refreshClientSchedules() {
-    clientScheduleCache.clear();
-    // Reload any expanded schedules
-    document.querySelectorAll('.workout-schedule.expanded').forEach(schedule => {
-        const clientId = parseInt(schedule.id.replace('schedule-', ''));
-        if (clientId) {
-            loadClientSchedule(clientId);
-        }
-    });
-}/**
- * Coach Assistant Web App - Modern Edition
- * Enhanced with smooth animations and elegant interactions
+/**
+ * ТВОЙТРЕНЕР - Coach Assistant Web App
+ * Modern iOS-style interface with full functionality
  */
 
 // Configuration
@@ -145,34 +15,19 @@ let currentCoach = null;
 let clients = [];
 let workouts = [];
 
-// Initialize Telegram WebApp with enhanced theming
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
+
+// Initialize Telegram WebApp
 function initTelegramWebApp() {
     const tg = CONFIG.telegramWebApp;
     if (tg) {
         tg.ready();
         tg.expand();
         
-        // Professional theme integration
-        applyTelegramTheme(tg.themeParams);
-        
-        // Listen for theme changes
-        tg.onEvent('themeChanged', () => {
-            applyTelegramTheme(tg.themeParams);
-        });
-        
-        // Show user info with professional styling
+        // Show user info
         if (tg.initDataUnsafe?.user) {
             const user = tg.initDataUnsafe.user;
-            const userName = document.getElementById('user-name');
-            userName.style.opacity = '0';
-            userName.textContent = user.first_name;
-            
-            // Professional fade in
-            setTimeout(() => {
-                userName.style.transition = 'opacity 0.3s ease';
-                userName.style.opacity = '1';
-            }, 100);
-            
             currentCoach = {
                 telegram_id: user.id.toString(),
                 name: `${user.first_name} ${user.last_name || ''}`.trim(),
@@ -180,66 +35,17 @@ function initTelegramWebApp() {
             };
         }
     } else {
-        // Default to system theme if not in Telegram
-        const systemTheme = detectSystemTheme();
-        document.documentElement.setAttribute('data-theme', systemTheme);
-        setupSystemThemeListener();
-        console.log(`🎨 Applied ${systemTheme} theme based on system preference`);
-        
-        // For testing outside Telegram - create a demo user
-        const userName = document.getElementById('user-name');
-        userName.textContent = 'Demo User';
-        
+        // Demo mode for testing
         currentCoach = {
             telegram_id: 'demo_user_' + Math.random().toString(36).substr(2, 9),
             name: 'Demo User',
             username: 'demo'
         };
-        
-        console.log('Running in demo mode with user:', currentCoach);
+        console.log('Running in demo mode');
     }
 }
 
-// Apply Telegram theme to the app
-function applyTelegramTheme(themeParams) {
-    const root = document.documentElement;
-    
-    // Detect if using dark theme
-    const isDark = themeParams.bg_color && 
-                   (themeParams.bg_color.toLowerCase().includes('#1') || 
-                    themeParams.bg_color.toLowerCase().includes('#2') ||
-                    themeParams.bg_color.toLowerCase().includes('#0'));
-    
-    const theme = isDark ? 'dark' : 'light';
-    root.setAttribute('data-theme', theme);
-    
-    console.log(`🎨 Applied ${theme} theme based on Telegram settings`);
-    
-    
-}
-
-// Detect system theme for non-Telegram users
-function detectSystemTheme() {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-    }
-    return 'light';
-}
-
-// Listen for system theme changes
-function setupSystemThemeListener() {
-    if (window.matchMedia) {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addListener((e) => {
-            if (!CONFIG.telegramWebApp) {
-                document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-                console.log(`🎨 System theme changed to: ${e.matches ? 'dark' : 'light'}`);
-            }
-        });
-    }
-}
-
-// Enhanced Database operations with better error handling
+// Database operations
 class Database {
     constructor() {
         this.baseUrl = `${CONFIG.supabaseUrl}/rest/v1`;
@@ -297,13 +103,6 @@ class Database {
         return clients[0];
     }
 
-    async updateClient(clientId, updates) {
-        return await this.request(`/clients?id=eq.${clientId}`, {
-            method: 'PATCH',
-            body: JSON.stringify(updates)
-        });
-    }
-
     async deleteClient(clientId) {
         return await this.request(`/clients?id=eq.${clientId}`, {
             method: 'DELETE'
@@ -330,7 +129,7 @@ class Database {
         });
     }
 
-    // Stats with proper counting
+    // Stats
     async getStats(coachId) {
         try {
             const [clientsResult, workoutsResult, completedResult] = await Promise.all([
@@ -357,7 +156,7 @@ class Database {
 
 const db = new Database();
 
-// Utility functions for translating field values
+// Utility functions
 function getGoalDisplayName(goal) {
     const goals = {
         'weight_loss': 'Снижение веса',
@@ -396,286 +195,291 @@ function getWorkoutTypeDisplayName(type) {
     return types[type] || type;
 }
 
-function getWorkoutTypeIcon(type) {
-    const icons = {
-        'cardio': '🏃‍♂️',
-        'strength_training': '🏋️‍♂️',
-        'powerlifting': '💪',
-        'bodybuilding': '🏆',
-        'leg_day': '🦵',
-        'upper_body': '💪',
-        'push_day': '👊',
-        'pull_day': '🤲',
-        'full_body': '🔥',
-        'core_abs': '🎯',
-        'hiit': '⚡',
-        'endurance': '🏃‍♀️',
-        'flexibility': '🧘‍♀️',
-        'sport_specific': '⚽',
-        'recovery': '💆‍♀️'
-    };
-    return icons[type] || '💪';
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-// Enhanced UI Management with animations
-class UI {
-    static showLoading(show = true) {
-        const overlay = document.getElementById('loading-overlay');
-        if (show) {
-            overlay.classList.add('active');
-        } else {
-            overlay.classList.remove('active');
+function getClientInitials(name) {
+    return name.split(' ').map(word => word[0]).join('').toUpperCase();
+}
+
+// UI Management
+function showLoading(show = true) {
+    const overlay = document.getElementById('loading-overlay');
+    if (show) {
+        overlay.classList.add('active');
+    } else {
+        overlay.classList.remove('active');
+    }
+}
+
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('active');
+    // Focus first input
+    const firstInput = modal.querySelector('input, select, textarea');
+    if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('active');
+}
+
+function switchToTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Update nav tabs
+    document.querySelectorAll('.nav-item').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+}
+
+function animateCounter(element, targetValue, duration = 800) {
+    const startValue = parseInt(element.textContent) || 0;
+    const increment = (targetValue - startValue) / (duration / 16);
+    let currentValue = startValue;
+
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if ((increment > 0 && currentValue >= targetValue) || 
+            (increment < 0 && currentValue <= targetValue)) {
+            currentValue = targetValue;
+            clearInterval(timer);
         }
+        element.textContent = Math.round(currentValue);
+    }, 16);
+}
+
+// Render functions
+function renderStats(stats) {
+    animateCounter(document.getElementById('clients-count'), stats.clients_count);
+    animateCounter(document.getElementById('workouts-count'), stats.workouts_count);
+    animateCounter(document.getElementById('completed-workouts'), stats.completed_workouts);
+    
+    // Calculate today's workouts
+    const today = new Date().toDateString();
+    const todayWorkouts = workouts.filter(w => 
+        new Date(w.date).toDateString() === today && w.status === 'planned'
+    ).length;
+    animateCounter(document.getElementById('today-workouts'), todayWorkouts);
+    
+    // Analytics tab stats
+    const completionRate = stats.workouts_count > 0 ? 
+        Math.round((stats.completed_workouts / stats.workouts_count) * 100) : 0;
+    const activeClients = clients.filter(c => {
+        return workouts.some(w => w.client_id === c.id && w.status === 'planned');
+    }).length;
+    
+    if (document.getElementById('completion-rate')) {
+        animateCounter(document.getElementById('completion-rate'), completionRate);
+        document.getElementById('completion-rate').textContent = completionRate + '%';
+    }
+    if (document.getElementById('active-clients')) {
+        animateCounter(document.getElementById('active-clients'), activeClients);
+    }
+}
+
+function renderTodaySchedule() {
+    const container = document.getElementById('today-schedule');
+    const today = new Date().toDateString();
+    const todayWorkouts = workouts
+        .filter(w => new Date(w.date).toDateString() === today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (!todayWorkouts.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📅</div>
+                <h3>Нет тренировок</h3>
+                <p>На сегодня тренировки не запланированы</p>
+            </div>
+        `;
+        return;
     }
 
-    static showModal(modalId) {
-        const modal = document.getElementById(modalId);
-        modal.classList.add('active');
-        // Focus first input
-        const firstInput = modal.querySelector('input, select, textarea');
-        if (firstInput) {
-            setTimeout(() => firstInput.focus(), 100);
-        }
-    }
+    container.innerHTML = todayWorkouts.map(workout => {
+        const client = clients.find(c => c.id === workout.client_id);
+        const date = new Date(workout.date);
+        const statusClass = `status-${workout.status}`;
+        const statusText = {
+            'planned': 'Ожидается',
+            'completed': 'Завершено',
+            'cancelled': 'Отменено'
+        }[workout.status] || workout.status;
 
-    static hideModal(modalId) {
-        const modal = document.getElementById(modalId);
-        modal.classList.remove('active');
-    }
-
-    static switchTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-
-        // Update nav tabs
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    }
-
-    static animateCounter(element, targetValue, duration = 800) {
-        const startValue = parseInt(element.textContent) || 0;
-        const increment = (targetValue - startValue) / (duration / 16);
-        let currentValue = startValue;
-
-        const timer = setInterval(() => {
-            currentValue += increment;
-            if ((increment > 0 && currentValue >= targetValue) || 
-                (increment < 0 && currentValue <= targetValue)) {
-                currentValue = targetValue;
-                clearInterval(timer);
-            }
-            element.textContent = Math.round(currentValue);
-        }, 16);
-    }
-
-    static renderStats(stats) {
-        // Professional counter animation
-        this.animateCounter(document.getElementById('clients-count'), stats.clients_count);
-        this.animateCounter(document.getElementById('workouts-count'), stats.workouts_count);
-        this.animateCounter(document.getElementById('completed-workouts'), stats.completed_workouts);
-    }
-
-    static renderClients(clientsList) {
-        const container = document.getElementById('clients-list');
-        
-        if (!clientsList.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">👥</div>
-                    <h3>Клиенты отсутствуют</h3>
-                    <p>Добавьте первого клиента для начала работы с системой управления тренировками</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = clientsList.map((client, index) => `
-            <div class="client-card" data-client-id="${client.id}">
-                <div class="client-header">
-                    <div class="client-name">${this.escapeHtml(client.name)}</div>
-                    <div class="client-actions">
-                        <button class="schedule-toggle" onclick="toggleClientSchedule(${client.id})" data-client-id="${client.id}">
-                            Расписание
-                            <span class="arrow">▼</span>
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteClient(${client.id})" title="Удалить клиента">
-                            Удалить
-                        </button>
+        return `
+            <div class="schedule-item">
+                <div class="schedule-left">
+                    <div class="schedule-time">${date.toLocaleTimeString('ru-RU').slice(0, 5)}</div>
+                    <div class="schedule-info">
+                        <h3>${escapeHtml(client?.name || 'Неизвестный клиент')}</h3>
+                        <p>${workout.workout_type ? getWorkoutTypeDisplayName(workout.workout_type) : 'Тренировка'}</p>
                     </div>
                 </div>
-                <div class="client-info">
-                    ${client.fitness_goal ? `<div>Цель: ${getGoalDisplayName(client.fitness_goal)}</div>` : ''}
-                    ${client.phone ? `<div>Телефон: ${this.escapeHtml(client.phone)}</div>` : ''}
-                    ${client.notes ? `<div>Заметки: ${this.escapeHtml(client.notes)}</div>` : ''}
-                    <div><small>Добавлен: ${new Date(client.created_at).toLocaleDateString('ru-RU')}</small></div>
-                </div>
-                <div class="workout-schedule" id="schedule-${client.id}">
-                    <!-- Workout schedule will be loaded here -->
+                <div class="schedule-right">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    ${workout.status === 'planned' ? `
+                        <button class="btn btn-sm btn-primary" onclick="completeWorkout(${workout.id})">
+                            ✓
+                        </button>
+                    ` : ''}
+                    <button class="delete-btn" onclick="deleteWorkout(${workout.id})">🗑</button>
                 </div>
             </div>
-        `).join('');
-    }
-
-    static renderWorkouts(workoutsList) {
-        const container = document.getElementById('workouts-list');
-        
-        if (!workoutsList.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">💪</div>
-                    <h3>Тренировки отсутствуют</h3>
-                    <p>Создайте первую тренировку для организации профессионального процесса обучения</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = workoutsList.map((workout, index) => {
-            const client = clients.find(c => c.id === workout.client_id);
-            const date = new Date(workout.date);
-            const statusClass = `status-${workout.status}`;
-            const statusText = {
-                'planned': 'Запланирована',
-                'completed': 'Завершена',
-                'cancelled': 'Отменена'
-            }[workout.status] || workout.status;
-
-            return `
-                <div class="workout-card" data-workout-id="${workout.id}">
-                    <div class="workout-header">
-                        <div class="workout-title">${this.escapeHtml(client?.name || 'Неизвестный клиент')}</div>
-                        <span class="workout-status ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="workout-info">
-                        ${workout.workout_type ? `<div>Тип: ${getWorkoutTypeDisplayName(workout.workout_type)}</div>` : ''}
-                        <div>Дата: ${date.toLocaleDateString('ru-RU')} в ${date.toLocaleTimeString('ru-RU').slice(0, 5)}</div>
-                        ${workout.notes ? `<div>Заметки: ${this.escapeHtml(workout.notes)}</div>` : ''}
-                    </div>
-                    ${workout.status === 'planned' ? `
-                        <div class="workout-actions">
-                            <button class="btn btn-primary btn-sm" onclick="completeWorkout(${workout.id})">
-                                Завершить
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="cancelWorkout(${workout.id})">
-                                Отменить
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-
-    static renderRecentWorkouts(workoutsList) {
-        const container = document.getElementById('recent-workouts');
-        const upcoming = workoutsList
-            .filter(w => new Date(w.date) > new Date() && w.status === 'planned')
-            .slice(0, 5);
-
-        if (!upcoming.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">📅</div>
-                    <h3>Расписание пусто</h3>
-                    <p>Запланируйте тренировки для эффективного управления процессом обучения</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = upcoming.map((workout, index) => {
-            const client = clients.find(c => c.id === workout.client_id);
-            const date = new Date(workout.date);
-            const isToday = date.toDateString() === new Date().toDateString();
-            const isTomorrow = date.toDateString() === new Date(Date.now() + 86400000).toDateString();
-            
-            let dateText = date.toLocaleDateString('ru-RU');
-            if (isToday) dateText = 'Сегодня';
-            else if (isTomorrow) dateText = 'Завтра';
-            
-            return `
-                <div class="workout-card">
-                    <div class="workout-header">
-                        <div class="workout-title">${this.escapeHtml(client?.name || 'Неизвестный клиент')}</div>
-                        <span class="workout-status status-planned">${dateText}</span>
-                    </div>
-                    <div class="workout-info">
-                        ${workout.workout_type ? `<div>Тип: ${getWorkoutTypeDisplayName(workout.workout_type)}</div>` : ''}
-                        <div>Время: ${date.toLocaleTimeString('ru-RU').slice(0, 5)}</div>
-                        ${workout.notes ? `<div>Заметки: ${this.escapeHtml(workout.notes.slice(0, 60))}${workout.notes.length > 60 ? '...' : ''}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    static populateClientSelect() {
-        const select = document.getElementById('workout-client');
-        select.innerHTML = '<option value="">Выберите клиента</option>' + 
-            clients.map(client => `<option value="${client.id}">${this.escapeHtml(client.name)}</option>`).join('');
-    }
-
-    static escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    static showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        
-        const colors = {
-            success: 'var(--accent-success)',
-            error: 'var(--accent-danger)',
-            info: 'var(--accent-primary)'
-        };
-        
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 16px;
-            background: ${colors[type] || colors.success};
-            color: white;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            font-size: 0.875rem;
-            z-index: 9999;
-            box-shadow: var(--shadow-lg);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
         `;
-        
-        document.body.appendChild(toast);
-        
-        // Animate in
-        requestAnimationFrame(() => {
-            toast.style.transform = 'translateX(0)';
-        });
-        
-        // Animate out and remove
-        setTimeout(() => {
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
+    }).join('');
 }
 
-// Application logic with enhanced error handling
+function renderRecentClients() {
+    const container = document.getElementById('recent-clients');
+    const recentClients = clients.slice(0, 5);
+
+    if (!recentClients.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">👥</div>
+                <h3>Нет клиентов</h3>
+                <p>Добавьте первого клиента</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = recentClients.map(client => {
+        const clientWorkouts = workouts.filter(w => w.client_id === client.id);
+        const completedWorkouts = clientWorkouts.filter(w => w.status === 'completed').length;
+        const progressPercent = clientWorkouts.length > 0 ? 
+            Math.round((completedWorkouts / clientWorkouts.length) * 100) : 0;
+
+        return `
+            <div class="client-item" onclick="switchToClientDetail(${client.id})">
+                <div class="client-left">
+                    <div class="client-avatar">${getClientInitials(client.name)}</div>
+                    <div class="client-info">
+                        <h3>${escapeHtml(client.name)}</h3>
+                        <p>Прогресс: ${progressPercent}% • ${client.fitness_goal ? getGoalDisplayName(client.fitness_goal) : 'Без цели'}</p>
+                    </div>
+                </div>
+                <div class="arrow-right">›</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderClientsList() {
+    const container = document.getElementById('clients-list');
+    
+    if (!clients.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">👥</div>
+                <h3>Клиенты отсутствуют</h3>
+                <p>Добавьте первого клиента для начала работы</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = clients.map(client => {
+        const clientWorkouts = workouts.filter(w => w.client_id === client.id);
+        const completedWorkouts = clientWorkouts.filter(w => w.status === 'completed').length;
+        const progressPercent = clientWorkouts.length > 0 ? 
+            Math.round((completedWorkouts / clientWorkouts.length) * 100) : 0;
+
+        return `
+            <div class="client-item">
+                <div class="client-left">
+                    <div class="client-avatar">${getClientInitials(client.name)}</div>
+                    <div class="client-info">
+                        <h3>${escapeHtml(client.name)}</h3>
+                        <p>Прогресс: ${progressPercent}% • ${client.fitness_goal ? getGoalDisplayName(client.fitness_goal) : 'Без цели'}</p>
+                        ${client.phone ? `<p>📞 ${escapeHtml(client.phone)}</p>` : ''}
+                        ${client.notes ? `<p>📝 ${escapeHtml(client.notes.slice(0, 50))}${client.notes.length > 50 ? '...' : ''}</p>` : ''}
+                    </div>
+                </div>
+                <div class="client-actions">
+                    <button class="btn btn-danger btn-sm" onclick="deleteClient(${client.id})">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderWorkoutsList() {
+    const container = document.getElementById('workouts-list');
+    
+    if (!workouts.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">💪</div>
+                <h3>Тренировки отсутствуют</h3>
+                <p>Создайте первую тренировку</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = workouts.map(workout => {
+        const client = clients.find(c => c.id === workout.client_id);
+        const date = new Date(workout.date);
+        const statusClass = `status-${workout.status}`;
+        const statusText = {
+            'planned': 'Запланирована',
+            'completed': 'Завершена',
+            'cancelled': 'Отменена'
+        }[workout.status] || workout.status;
+
+        return `
+            <div class="workout-card">
+                <div class="workout-header">
+                    <div class="workout-title">${escapeHtml(client?.name || 'Неизвестный клиент')}</div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="workout-info">
+                    ${workout.workout_type ? `<div>Тип: ${getWorkoutTypeDisplayName(workout.workout_type)}</div>` : ''}
+                    <div>Дата: ${date.toLocaleDateString('ru-RU')} в ${date.toLocaleTimeString('ru-RU').slice(0, 5)}</div>
+                    ${workout.notes ? `<div>Заметки: ${escapeHtml(workout.notes)}</div>` : ''}
+                </div>
+                ${workout.status === 'planned' ? `
+                    <div class="workout-actions">
+                        <button class="btn btn-primary btn-sm" onclick="completeWorkout(${workout.id})">
+                            Завершить
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="cancelWorkout(${workout.id})">
+                            Отменить
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function populateClientSelect() {
+    const select = document.getElementById('workout-client');
+    select.innerHTML = '<option value="">Выберите клиента</option>' + 
+        clients.map(client => `<option value="${client.id}">${escapeHtml(client.name)}</option>`).join('');
+}
+
+// Application logic
 async function initApp() {
     try {
-        UI.showLoading(true);
+        showLoading(true);
         
         initTelegramWebApp();
         
@@ -684,42 +488,34 @@ async function initApp() {
             return;
         }
 
-        console.log('Initializing app for user:', currentCoach);
-
         // Get or create coach
         let coach = await db.getCoach(currentCoach.telegram_id);
-        console.log('Found existing coach:', coach);
-        
         if (!coach) {
-            console.log('Creating new coach...');
             coach = await db.createCoach(currentCoach);
-            console.log('Created coach:', coach);
-            UI.showToast('Аккаунт тренера успешно создан', 'success');
         }
         currentCoach = coach;
         
-        console.log('Final coach object:', currentCoach);
-
-        // Load data with progress
+        // Load data
         await loadData();
         
         // Setup event listeners
         setupEventListeners();
         
-        UI.showLoading(false);
-        UI.showToast('Система успешно инициализирована', 'success');
+        // Hide loading screen
+        setTimeout(() => {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+        }, 2000);
         
     } catch (error) {
         console.error('App initialization error:', error);
         showError('Ошибка инициализации системы');
-        UI.showLoading(false);
+        showLoading(false);
     }
 }
 
 async function loadData() {
     try {
-        console.log('Loading data for coach:', currentCoach.id);
-        
         const [clientsData, workoutsData, stats] = await Promise.all([
             db.getClients(currentCoach.id),
             db.getWorkouts(currentCoach.id),
@@ -728,87 +524,39 @@ async function loadData() {
 
         clients = clientsData || [];
         workouts = workoutsData || [];
-        
-        console.log('Loaded data:', {
-            clients: clients.length,
-            workouts: workouts.length,
-            stats: stats
-        });
 
-        UI.renderStats(stats);
-        UI.renderClients(clients);
-        UI.renderWorkouts(workouts);
-        UI.renderRecentWorkouts(workouts);
-        UI.populateClientSelect();
+        renderStats(stats);
+        renderTodaySchedule();
+        renderRecentClients();
+        renderClientsList();
+        renderWorkoutsList();
+        populateClientSelect();
         
-        // Refresh client schedules
-        refreshClientSchedules();
-
     } catch (error) {
         console.error('Data loading error:', error);
         
-        // Set empty data on error
         clients = [];
         workouts = [];
         
-        // Render empty state
-        UI.renderStats({ clients_count: 0, workouts_count: 0, completed_workouts: 0 });
-        UI.renderClients([]);
-        UI.renderWorkouts([]);
-        UI.renderRecentWorkouts([]);
-        UI.populateClientSelect();
+        renderStats({ clients_count: 0, workouts_count: 0, completed_workouts: 0 });
+        renderTodaySchedule();
+        renderRecentClients();
+        renderClientsList();
+        renderWorkoutsList();
+        populateClientSelect();
         
         showError('Ошибка синхронизации данных');
     }
 }
 
 function setupEventListeners() {
-    // Enhanced tab navigation
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
+    // Bottom navigation
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+        navItem.addEventListener('click', (e) => {
             e.preventDefault();
-            const tabName = tab.dataset.tab;
-            UI.switchTab(tabName);
-            
-            // Haptic feedback for Telegram WebApp
-            if (CONFIG.telegramWebApp?.HapticFeedback) {
-                CONFIG.telegramWebApp.HapticFeedback.impactOccurred('light');
-            }
+            const tabName = navItem.dataset.tab;
+            switchToTab(tabName);
         });
-    });
-
-    // Modal controls with animations
-    document.querySelectorAll('[data-modal]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const modalId = btn.dataset.modal;
-            UI.hideModal(modalId);
-        });
-    });
-
-    // Add client button
-    document.getElementById('add-client-btn').addEventListener('click', () => {
-        document.getElementById('add-client-form').reset();
-        UI.showModal('add-client-modal');
-    });
-
-    // Add workout button
-    document.getElementById('add-workout-btn').addEventListener('click', () => {
-        if (clients.length === 0) {
-            showError('Необходимо сначала добавить клиентов');
-            return;
-        }
-        
-        document.getElementById('add-workout-form').reset();
-        UI.populateClientSelect();
-        
-        // Set default date to tomorrow
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(10, 0);
-        document.getElementById('workout-date').value = tomorrow.toISOString().slice(0, 16);
-        
-        UI.showModal('add-workout-modal');
     });
 
     // Form submissions
@@ -819,8 +567,7 @@ function setupEventListeners() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                const modalId = modal.id;
-                UI.hideModal(modalId);
+                closeModal(modal.id);
             }
         });
     });
@@ -829,17 +576,18 @@ function setupEventListeners() {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal.active').forEach(modal => {
-                UI.hideModal(modal.id);
+                closeModal(modal.id);
             });
         }
     });
 }
 
+// Event handlers
 async function handleAddClient(e) {
     e.preventDefault();
     
     try {
-        UI.showLoading(true);
+        showLoading(true);
         
         const clientData = {
             coach_id: currentCoach.id,
@@ -857,15 +605,14 @@ async function handleAddClient(e) {
         await db.createClient(clientData);
         await loadData();
         
-        UI.hideModal('add-client-modal');
-        UI.showToast(`Клиент "${clientData.name}" добавлен`, 'success');
-
+        closeModal('add-client-modal');
+        showToast(`Клиент "${clientData.name}" добавлен`);
         
     } catch (error) {
         console.error('Add client error:', error);
         showError('Ошибка при добавлении клиента');
     } finally {
-        UI.showLoading(false);
+        showLoading(false);
     }
 }
 
@@ -873,7 +620,7 @@ async function handleAddWorkout(e) {
     e.preventDefault();
     
     try {
-        UI.showLoading(true);
+        showLoading(true);
         
         const clientId = parseInt(document.getElementById('workout-client').value);
         const workoutType = document.getElementById('workout-type').value.trim();
@@ -908,16 +655,16 @@ async function handleAddWorkout(e) {
         await db.createWorkout(workoutData);
         await loadData();
         
-        UI.hideModal('add-workout-modal');
+        closeModal('add-workout-modal');
         
         const client = clients.find(c => c.id === clientId);
-        UI.showToast(`Тренировка для ${client?.name} создана`, 'success');
+        showToast(`Тренировка для ${client?.name} создана`);
         
     } catch (error) {
         console.error('Add workout error:', error);
         showError('Ошибка при создании тренировки');
     } finally {
-        UI.showLoading(false);
+        showLoading(false);
     }
 }
 
@@ -925,35 +672,51 @@ async function deleteClient(clientId) {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
     
-    if (!confirm(`Удалить клиента "${client.name}"?\n\nЭто действие нельзя отменить. Все тренировки этого клиента также будут удалены.`)) {
+    if (!confirm(`Удалить клиента "${client.name}"?\n\nЭто действие нельзя отменить.`)) {
         return;
     }
     
     try {
-        UI.showLoading(true);
+        showLoading(true);
         await db.deleteClient(clientId);
         await loadData();
-        UI.showToast(`Клиент "${client.name}" удален`, 'success');
-
+        showToast(`Клиент "${client.name}" удален`);
     } catch (error) {
         console.error('Delete client error:', error);
         showError('Ошибка при удалении клиента');
     } finally {
-        UI.showLoading(false);
+        showLoading(false);
+    }
+}
+
+async function deleteWorkout(workoutId) {
+    if (!confirm('Удалить тренировку?')) return;
+    
+    try {
+        showLoading(true);
+        // Since we don't have delete workout in DB class, we'll update status to cancelled
+        await db.updateWorkout(workoutId, { status: 'cancelled' });
+        await loadData();
+        showToast('Тренировка удалена');
+    } catch (error) {
+        console.error('Delete workout error:', error);
+        showError('Ошибка при удалении тренировки');
+    } finally {
+        showLoading(false);
     }
 }
 
 async function completeWorkout(workoutId) {
     try {
-        UI.showLoading(true);
+        showLoading(true);
         await db.updateWorkout(workoutId, { status: 'completed' });
         await loadData();
-        UI.showToast('Тренировка завершена', 'success');
+        showToast('Тренировка завершена');
     } catch (error) {
         console.error('Complete workout error:', error);
         showError('Ошибка при завершении тренировки');
     } finally {
-        UI.showLoading(false);
+        showLoading(false);
     }
 }
 
@@ -961,19 +724,62 @@ async function cancelWorkout(workoutId) {
     if (!confirm('Отменить тренировку?')) return;
     
     try {
-        UI.showLoading(true);
+        showLoading(true);
         await db.updateWorkout(workoutId, { status: 'cancelled' });
         await loadData();
-        UI.showToast('Тренировка отменена', 'success');
+        showToast('Тренировка отменена');
     } catch (error) {
         console.error('Cancel workout error:', error);
         showError('Ошибка при отмене тренировки');
     } finally {
-        UI.showLoading(false);
+        showLoading(false);
     }
 }
 
-// Enhanced utility functions
+// Global functions for HTML onclick events
+function openAddClientModal() {
+    document.getElementById('add-client-form').reset();
+    showModal('add-client-modal');
+}
+
+function openAddWorkoutModal() {
+    if (clients.length === 0) {
+        showError('Необходимо сначала добавить клиентов');
+        return;
+    }
+    
+    document.getElementById('add-workout-form').reset();
+    populateClientSelect();
+    
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0);
+    document.getElementById('workout-date').value = tomorrow.toISOString().slice(0, 16);
+    
+    showModal('add-workout-modal');
+}
+
+function closeApp() {
+    if (CONFIG.telegramWebApp) {
+        CONFIG.telegramWebApp.close();
+    } else {
+        window.close();
+    }
+}
+
+function toggleMenu() {
+    // Menu functionality can be added here
+    showToast('Меню в разработке');
+}
+
+function switchToClientDetail(clientId) {
+    // Switch to clients tab and highlight specific client
+    switchToTab('clients');
+    showToast('Детали клиента в разработке');
+}
+
+// Utility functions
 function showError(message) {
     if (CONFIG.telegramWebApp) {
         CONFIG.telegramWebApp.showAlert(message);
@@ -982,17 +788,62 @@ function showError(message) {
     }
 }
 
-function showSuccess(message) {
-    UI.showToast(message, 'success');
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#34C759',
+        error: '#FF3B30',
+        info: '#007AFF'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 20px;
+        background: ${colors[type] || colors.success};
+        color: white;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(-50%) translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        max-width: 300px;
+        text-align: center;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        toast.style.opacity = '1';
+    });
+    
+    // Animate out and remove
+    setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(-20px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
-
-
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', initApp);
-
 // Export functions for global access
+window.openAddClientModal = openAddClientModal;
+window.openAddWorkoutModal = openAddWorkoutModal;
+window.closeModal = closeModal;
+window.switchToTab = switchToTab;
 window.deleteClient = deleteClient;
+window.deleteWorkout = deleteWorkout;
 window.completeWorkout = completeWorkout;
 window.cancelWorkout = cancelWorkout;
-window.toggleClientSchedule = toggleClientSchedule;
+window.closeApp = closeApp;
+window.toggleMenu = toggleMenu;
+window.switchToClientDetail = switchToClientDetail;

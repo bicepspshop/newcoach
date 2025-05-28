@@ -515,3 +515,32 @@ You have two options:
 2025-05-28 09:47:55,613 - aiogram.event - INFO - Update id=305421635 is handled. Duration 1750 ms by bot id=7503397913
 2025-05-28 18:20:41,364 - aiogram.event - INFO - Update id=305421636 is handled. Duration 1906 ms by bot id=7503397913
 2025-05-28 21:54:31,543 - aiogram.event - INFO - Update id=305421637 is handled. Duration 1812 ms by bot id=7503397913
+2025-05-29 00:13:36,509 - __main__ - INFO - 🚀 Starting Coach Assistant Bot...
+2025-05-29 00:13:37,895 - __main__ - INFO - ✅ Database connected
+2025-05-29 00:13:38,128 - __main__ - INFO - 🤖 Bot started: @couchhelperbot
+2025-05-29 00:13:38,128 - __main__ - INFO - 👤 Bot name: ТВОЙТРЕНЕР
+2025-05-29 00:13:38,280 - __main__ - INFO - ✅ Bot commands set
+2025-05-29 00:13:38,280 - __main__ - INFO - 🏋️‍♂️ Coach Assistant Bot is ready!
+2025-05-29 00:13:38,281 - aiogram.dispatcher - INFO - Start polling
+2025-05-29 00:13:38,338 - aiogram.dispatcher - INFO - Run polling for bot @couchhelperbot id=7503397913 - 'ТВОЙТРЕНЕР'
+2025-05-29 00:13:39,166 - aiogram.event - INFO - Update id=305421638 is handled. Duration 672 ms by bot id=7503397913
+2025-05-29 00:13:52,397 - aiogram.dispatcher - INFO - Polling stopped
+2025-05-29 00:13:52,650 - __main__ - INFO - 🔄 Shutting down bot...
+2025-05-29 00:13:52,793 - __main__ - INFO - ✅ Database disconnected
+2025-05-29 00:13:52,793 - __main__ - INFO - ✅ Bot shutdown complete
+2025-05-29 00:13:52,793 - aiogram.dispatcher - INFO - Polling stopped for bot @couchhelperbot id=7503397913 - 'ТВОЙТРЕНЕР'
+2025-05-29 00:13:52,793 - __main__ - INFO - 👋 Bot stopped by user
+2025-05-29 00:14:16,162 - __main__ - INFO - 🚀 Starting Coach Assistant Bot...
+2025-05-29 00:14:17,155 - __main__ - INFO - ✅ Database connected
+2025-05-29 00:14:17,360 - __main__ - INFO - 🤖 Bot started: @couchhelperbot
+2025-05-29 00:14:17,360 - __main__ - INFO - 👤 Bot name: ТВОЙТРЕНЕР
+2025-05-29 00:14:17,647 - __main__ - INFO - ✅ Bot commands set
+2025-05-29 00:14:17,648 - __main__ - INFO - 🏋️‍♂️ Coach Assistant Bot is ready!
+2025-05-29 00:14:17,648 - aiogram.dispatcher - INFO - Start polling
+2025-05-29 00:14:17,705 - aiogram.dispatcher - INFO - Run polling for bot @couchhelperbot id=7503397913 - 'ТВОЙТРЕНЕР'
+2025-05-29 00:15:03,565 - aiogram.dispatcher - INFO - Polling stopped
+2025-05-29 00:15:03,826 - __main__ - INFO - 🔄 Shutting down bot...
+2025-05-29 00:15:03,958 - __main__ - INFO - ✅ Database disconnected
+2025-05-29 00:15:03,958 - __main__ - INFO - ✅ Bot shutdown complete
+2025-05-29 00:15:03,958 - aiogram.dispatcher - INFO - Polling stopped for bot @couchhelperbot id=7503397913 - 'ТВОЙТРЕНЕР'
+2025-05-29 00:15:03,959 - __main__ - INFO - 👋 Bot stopped by user

@@ -3,169 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coach Assistant</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=3.0">
-    <link rel="stylesheet" href="icon-fix.css?v=4.0">
+    <title>ТВОЙТРЕНЕР</title>
+    <link rel="stylesheet" href="style.css?v=4.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div id="app">
-        <!-- Professional Header -->
-        <header class="header">
-            <h1>Coach Assistant</h1>
-            <div class="user-info">
-                <span id="user-name">Загрузка...</span>
-            </div>
-        </header>
+    <!-- Loading Screen -->
+    <div id="loading-overlay" class="loading-screen">
+        <h1>ТВОЙТРЕНЕР</h1>
+        <div class="loading-icon">
+            <div class="spinner"></div>
+        </div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
 
-        <!-- Professional Navigation with Icons -->
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="dashboard">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7"/>
-                        <rect x="14" y="3" width="7" height="7"/>
-                        <rect x="14" y="14" width="7" height="7"/>
-                        <rect x="3" y="14" width="7" height="7"/>
-                    </svg>
-                </span>
-                <span class="nav-text">Обзор</span>
-            </button>
-            <button class="nav-tab" data-tab="clients">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                </span>
-                <span class="nav-text">Клиенты</span>
-            </button>
-            <button class="nav-tab" data-tab="workouts">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6.5 6.5h11v11h-11z"/>
-                        <path d="M4 4l2.5 2.5"/>
-                        <path d="M17.5 17.5L20 20"/>
-                        <path d="M4 20l2.5-2.5"/>
-                        <path d="M17.5 6.5L20 4"/>
-                        <circle cx="12" cy="12" r="2"/>
-                    </svg>
-                </span>
-                <span class="nav-text">Тренировки</span>
-            </button>
-        </nav>
+    <!-- Main App -->
+    <div id="app" class="container hidden">
+        <div class="header">
+            <a href="#" class="close-btn" onclick="closeApp()">Закрыть</a>
+            <h1>ТВОЙТРЕНЕР</h1>
+            <p class="subtitle">мини-приложение</p>
+            <button class="menu-btn" onclick="toggleMenu()">⋯</button>
+        </div>
 
-        <!-- Dashboard Tab with Sophisticated Stats -->
-        <section id="dashboard" class="tab-content active">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon clients"></div>
-                    <div class="stat-number" id="clients-count">0</div>
-                    <div class="stat-label">Клиентов</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon workouts"></div>
-                    <div class="stat-number" id="workouts-count">0</div>
-                    <div class="stat-label">Тренировок</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon completed"></div>
-                    <div class="stat-number" id="completed-workouts">0</div>
-                    <div class="stat-label">Завершено</div>
-                </div>
-            </div>
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="main-content">
+                <h2 class="main-title">Главная панель</h2>
+                <p class="welcome-text">Добро пожаловать в фитнес-помощник!</p>
 
-            <div class="recent-section">
-                <h3>
-                    <span class="section-icon small">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </span>
-                    Ближайшие тренировки
-                </h3>
-                <div id="recent-workouts" class="recent-workouts">
-                    <div class="loading">Загрузка данных...</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-number" id="clients-count">0</div>
+                        <div class="stat-label">Всего клиентов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏋️</div>
+                        <div class="stat-number" id="workouts-count">0</div>
+                        <div class="stat-label">Всего тренировок</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number" id="completed-workouts">0</div>
+                        <div class="stat-label">Завершено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-number" id="today-workouts">0</div>
+                        <div class="stat-label">Тренировок сегодня</div>
+                    </div>
+                </div>
+
+                <h3 class="quick-actions-title">Быстрые действия</h3>
+                <div class="actions-grid">
+                    <div class="action-card" onclick="openAddClientModal()">
+                        <div class="action-icon">👤</div>
+                        <div class="action-label">Добавить клиента</div>
+                    </div>
+                    <div class="action-card" onclick="openAddWorkoutModal()">
+                        <div class="action-icon">📅</div>
+                        <div class="action-label">Запланировать тренировку</div>
+                    </div>
+                    <div class="action-card" onclick="switchToTab('analytics')">
+                        <div class="action-icon">📊</div>
+                        <div class="action-label">Аналитика</div>
+                    </div>
+                    <div class="action-card" onclick="switchToTab('settings')">
+                        <div class="action-icon">⚙️</div>
+                        <div class="action-label">Настройки</div>
+                    </div>
+                </div>
+
+                <div class="schedule-section">
+                    <h3 class="schedule-title">Расписание на сегодня</h3>
+                    <div id="today-schedule">
+                        <div class="loading">Загрузка расписания...</div>
+                    </div>
+                </div>
+
+                <div class="clients-section">
+                    <h3 class="clients-title">Последние клиенты</h3>
+                    <div id="recent-clients">
+                        <div class="loading">Загрузка клиентов...</div>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Sophisticated Clients Tab -->
-        <section id="clients" class="tab-content">
-            <div class="section-header">
-                <h2>
-                    <span class="section-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                    </span>
-                    Клиенты
-                </h2>
-                <button class="btn btn-primary" id="add-client-btn">
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </span>
-                    Добавить
-                </button>
-            </div>
-            
-            <div id="clients-list" class="clients-list">
-                <div class="loading">Загрузка клиентов...</div>
-            </div>
-        </section>
+        <!-- Clients Tab -->
+        <div id="clients" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Клиенты</h2>
+                <p class="welcome-text">Управление вашими клиентами</p>
+                
+                <div class="section-actions">
+                    <div class="action-card" onclick="openAddClientModal()">
+                        <div class="action-icon">➕</div>
+                        <div class="action-label">Добавить клиента</div>
+                    </div>
+                </div>
 
-        <!-- Sophisticated Workouts Tab -->
-        <section id="workouts" class="tab-content">
-            <div class="section-header">
-                <h2>
-                    <span class="section-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6.5 6.5h11v11h-11z"/>
-                            <path d="M4 4l2.5 2.5"/>
-                            <path d="M17.5 17.5L20 20"/>
-                            <path d="M4 20l2.5-2.5"/>
-                            <path d="M17.5 6.5L20 4"/>
-                            <circle cx="12" cy="12" r="2"/>
-                        </svg>
-                    </span>
-                    Тренировки
-                </h2>
-                <button class="btn btn-primary" id="add-workout-btn">
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </span>
-                    Создать
-                </button>
+                <div class="clients-list-section">
+                    <div id="clients-list">
+                        <div class="loading">Загрузка клиентов...</div>
+                    </div>
+                </div>
             </div>
-            
-            <div id="workouts-list" class="workouts-list">
-                <div class="loading">Загрузка тренировок...</div>
-            </div>
-        </section>
+        </div>
 
-        <!-- Elegant Add Client Modal -->
+        <!-- Workouts Tab -->
+        <div id="workouts" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Тренировки</h2>
+                <p class="welcome-text">Управление тренировками</p>
+                
+                <div class="section-actions">
+                    <div class="action-card" onclick="openAddWorkoutModal()">
+                        <div class="action-icon">➕</div>
+                        <div class="action-label">Создать тренировку</div>
+                    </div>
+                </div>
+
+                <div class="workouts-list-section">
+                    <div id="workouts-list">
+                        <div class="loading">Загрузка тренировок...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Аналитика</h2>
+                <p class="welcome-text">Статистика и отчеты</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-number" id="monthly-income">0₽</div>
+                        <div class="stat-label">Доход за месяц</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-number" id="active-clients">0</div>
+                        <div class="stat-label">Активных клиентов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-number" id="completion-rate">0%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-number" id="avg-workouts">0</div>
+                        <div class="stat-label">Среднее в неделю</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="main-content">
+                <h2 class="main-title">Настройки</h2>
+                <p class="welcome-text">Настройки приложения</p>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">Общие настройки</h3>
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Уведомления</h4>
+                            <p>Получать уведомления о тренировках</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="setting-info">
+                            <h4>Тема</h4>
+                            <p>Автоматическая смена темы</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Client Modal -->
         <div id="add-client-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>Добавить клиента</h3>
-                    <button class="close-btn" data-modal="add-client-modal">&times;</button>
+                    <button class="close-btn" onclick="closeModal('add-client-modal')">&times;</button>
                 </div>
                 <form id="add-client-form">
                     <div class="form-group">
@@ -198,7 +238,7 @@
                         <textarea id="client-notes" rows="3" placeholder="Особенности, медицинские ограничения, предпочтения..."></textarea>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" data-modal="add-client-modal">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-client-modal')">
                             Отмена
                         </button>
                         <button type="submit" class="btn btn-primary">
@@ -209,12 +249,12 @@
             </div>
         </div>
 
-        <!-- Elegant Add Workout Modal -->
+        <!-- Add Workout Modal -->
         <div id="add-workout-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3>Создать тренировку</h3>
-                    <button class="close-btn" data-modal="add-workout-modal">&times;</button>
+                    <button class="close-btn" onclick="closeModal('add-workout-modal')">&times;</button>
                 </div>
                 <form id="add-workout-form">
                     <div class="form-group">
@@ -253,7 +293,7 @@
                         <textarea id="workout-notes" rows="4" placeholder="Упражнения, план тренировки, особые указания..."></textarea>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" data-modal="add-workout-modal">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-workout-modal')">
                             Отмена
                         </button>
                         <button type="submit" class="btn btn-primary">
@@ -264,19 +304,31 @@
             </div>
         </div>
 
-        <!-- Professional Loading overlay with Barbell -->
-        <div id="loading-overlay" class="loading-overlay">
-            <div class="barbell-loader">
-                <div class="barbell">
-                    <div class="weight left"></div>
-                    <div class="bar"></div>
-                    <div class="weight right"></div>
-                </div>
-            </div>
-            <div class="loading-text">Загрузка...</div>
-        </div>
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-tab="dashboard">
+                <div class="nav-icon">🏠</div>
+                <span>Главная</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="clients">
+                <div class="nav-icon">👥</div>
+                <span>Клиенты</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="workouts">
+                <div class="nav-icon">🏋️</div>
+                <span>Тренировки</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="analytics">
+                <div class="nav-icon">📊</div>
+                <span>Аналитика</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="settings">
+                <div class="nav-icon">⚙️</div>
+                <span>Настройки</span>
+            </a>
+        </nav>
     </div>
 
-    <script src="script.js?v=2.0"></script>
+    <script src="script.js?v=4.0"></script>
 </body>
 </html>
