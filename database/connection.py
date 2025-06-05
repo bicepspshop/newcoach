@@ -9,21 +9,26 @@ from datetime import datetime
 class DatabaseManager:
     def __init__(self):
         self.pool: Optional[asyncpg.Pool] = None
-        self.database_url = os.getenv('DATABASE_URL')
+        # Updated Supabase connection
+        self.database_url = os.getenv('DATABASE_URL', 'postgresql://postgres.nludsxoqhhlfpehhblgg:frjDNeVdtQv02KC7@aws-0-eu-north-1.pooler.supabase.com:6543/postgres')
         
     async def connect(self):
         """Initialize database connection pool"""
         if not self.database_url:
             raise ValueError("DATABASE_URL not found in environment variables")
             
-        self.pool = await asyncpg.create_pool(
-            self.database_url,
-            min_size=1,
-            max_size=10,
-            command_timeout=60,
-            statement_cache_size=0  # Disable prepared statement cache for pgbouncer
-        )
-        print("✅ Database connected successfully")
+        try:
+            self.pool = await asyncpg.create_pool(
+                self.database_url,
+                min_size=1,
+                max_size=10,
+                command_timeout=60,
+                statement_cache_size=0  # Disable prepared statement cache for pgbouncer
+            )
+            print("✅ Database connected successfully to new Supabase instance")
+        except Exception as e:
+            print(f"❌ Database connection failed: {e}")
+            raise
     
     async def disconnect(self):
         """Close database connection pool"""
