@@ -1,0 +1,1 @@
+PS C:\Users\fonsh\Downloads\coachapp> ./force_update.bat
