@@ -1,6 +1,6 @@
 /**
  * ТВОЙТРЕНЕР - Coach Assistant Web App
- * Simplified version that actually works
+ * Fixed version with proper coach ID handling
  */
 
 // Configuration - Updated to new Supabase instance
@@ -30,6 +30,7 @@ function initTelegramWebApp() {
                 name: `${user.first_name} ${user.last_name || ''}`.trim(),
                 username: user.username
             };
+            console.log('Telegram user detected:', currentCoach);
         }
     } else {
         // Demo mode for testing - using existing coach from database
@@ -56,30 +57,37 @@ class Database {
 
     async request(endpoint, options = {}) {
         try {
+            console.log(`Making request to: ${this.baseUrl}${endpoint}`, options);
+            
             const response = await fetch(`${this.baseUrl}${endpoint}`, {
                 headers: this.headers,
                 ...options
             });
             
             if (!response.ok) {
-                console.error(`HTTP error! status: ${response.status}`);
-                return [];
+                const errorText = await response.text();
+                console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            return await response.json();
+            const data = await response.json();
+            console.log(`Response from ${endpoint}:`, data);
+            return data;
         } catch (error) {
             console.error('Database request error:', error);
-            return [];
+            throw error;
         }
     }
 
     // Coach operations
     async getCoach(telegramId) {
+        console.log('Getting coach by telegram_id:', telegramId);
         const coaches = await this.request(`/coaches?telegram_id=eq.${telegramId}`);
         return coaches[0] || null;
     }
 
     async createCoach(coach) {
+        console.log('Creating coach:', coach);
         const coaches = await this.request('/coaches', {
             method: 'POST',
             body: JSON.stringify({
@@ -93,15 +101,22 @@ class Database {
 
     // Client operations
     async getClients(coachId) {
+        console.log('Getting clients for coach ID:', coachId);
+        
         // Try direct approach first
         let clients = await this.request(`/clients?coach_id=eq.${coachId}&order=created_at.desc`);
+        console.log('Direct clients query result:', clients);
         
         // If no results, try through trainer_client relationship
         if (!clients || clients.length === 0) {
+            console.log('No direct clients found, trying trainer_client relationship...');
             const relations = await this.request(`/trainer_client?trainer_id=eq.${coachId}`);
+            console.log('Trainer-client relations:', relations);
+            
             if (relations && relations.length > 0) {
                 const clientIds = relations.map(r => r.client_id).join(',');
                 clients = await this.request(`/clients?id=in.(${clientIds})&order=created_at.desc`);
+                console.log('Clients from relations:', clients);
             }
         }
         
@@ -109,63 +124,84 @@ class Database {
     }
 
     async createClient(client) {
-        const clients = await this.request('/clients', {
-            method: 'POST',
-            body: JSON.stringify({
-                ...client,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            })
-        });
+        console.log('Creating client:', client);
         
-        const newClient = clients[0];
-        
-        // Also create relationship in trainer_client if it exists
-        if (newClient) {
-            try {
-                await this.request('/trainer_client', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        trainer_id: client.coach_id,
-                        client_id: newClient.id,
-                        created_at: new Date().toISOString()
-                    })
-                });
-            } catch (relationError) {
-                console.log('trainer_client relationship not created:', relationError);
+        try {
+            const clients = await this.request('/clients', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...client,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+            
+            const newClient = clients[0];
+            console.log('Created client:', newClient);
+            
+            // Also create relationship in trainer_client if it exists
+            if (newClient) {
+                try {
+                    console.log('Creating trainer_client relationship...');
+                    const relationship = await this.request('/trainer_client', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            trainer_id: client.coach_id,
+                            client_id: newClient.id,
+                            created_at: new Date().toISOString()
+                        })
+                    });
+                    console.log('Created relationship:', relationship);
+                } catch (relationError) {
+                    console.log('Failed to create trainer_client relationship:', relationError);
+                    // This is not critical, continue anyway
+                }
             }
+            
+            return newClient;
+        } catch (error) {
+            console.error('Error creating client:', error);
+            throw error;
         }
-        
-        return newClient;
     }
 
     async deleteClient(clientId) {
+        console.log('Deleting client:', clientId);
+        
         // Delete from trainer_client relationship first
         try {
             await this.request(`/trainer_client?client_id=eq.${clientId}`, {
                 method: 'DELETE'
             });
+            console.log('Deleted trainer_client relationships');
         } catch (relationError) {
-            console.log('trainer_client relationship not deleted:', relationError);
+            console.log('No trainer_client relationships to delete:', relationError);
         }
         
         // Delete client
-        return await this.request(`/clients?id=eq.${clientId}`, {
+        const result = await this.request(`/clients?id=eq.${clientId}`, {
             method: 'DELETE'
         });
+        console.log('Deleted client:', result);
+        return result;
     }
 
     // Workout operations
     async getWorkouts(coachId) {
+        console.log('Getting workouts for coach ID:', coachId);
+        
         // Try direct approach first
         let workouts = await this.request(`/workouts?coach_id=eq.${coachId}&order=date.desc&limit=50`);
+        console.log('Direct workouts query result:', workouts);
         
         // If no results, try through client relationships
         if (!workouts || workouts.length === 0) {
+            console.log('No direct workouts found, trying through client relationships...');
             const clients = await this.getClients(coachId);
             if (clients && clients.length > 0) {
                 const clientIds = clients.map(c => c.id).join(',');
                 workouts = await this.request(`/workouts?client_id=in.(${clientIds})&order=date.desc&limit=50`);
+                console.log('Workouts from client relationships:', workouts);
             }
         }
         
@@ -173,6 +209,8 @@ class Database {
     }
 
     async createWorkout(workout) {
+        console.log('Creating workout:', workout);
+        
         const workouts = await this.request('/workouts', {
             method: 'POST',
             body: JSON.stringify({
@@ -181,22 +219,32 @@ class Database {
                 updated_at: new Date().toISOString()
             })
         });
-        return workouts[0];
+        
+        const newWorkout = workouts[0];
+        console.log('Created workout:', newWorkout);
+        return newWorkout;
     }
 
     async updateWorkout(workoutId, updates) {
-        return await this.request(`/workouts?id=eq.${workoutId}`, {
+        console.log('Updating workout:', workoutId, updates);
+        
+        const result = await this.request(`/workouts?id=eq.${workoutId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 ...updates,
                 updated_at: new Date().toISOString()
             })
         });
+        
+        console.log('Updated workout:', result);
+        return result;
     }
 
     // Stats
     async getStats(coachId) {
         try {
+            console.log('Getting stats for coach ID:', coachId);
+            
             const [clientsResult, workoutsResult] = await Promise.all([
                 this.getClients(coachId),
                 this.getWorkouts(coachId)
@@ -204,11 +252,14 @@ class Database {
 
             const completedWorkouts = workoutsResult.filter(w => w.status === 'completed');
 
-            return {
+            const stats = {
                 clients_count: clientsResult.length,
                 workouts_count: workoutsResult.length,
                 completed_workouts: completedWorkouts.length
             };
+            
+            console.log('Calculated stats:', stats);
+            return stats;
         } catch (error) {
             console.error('Error fetching stats:', error);
             return {
@@ -526,6 +577,8 @@ async function initApp() {
         showLoading(true);
         initTelegramWebApp();
         
+        console.log('Initialized coach data:', currentCoach);
+        
         if (!currentCoach?.telegram_id) {
             console.warn('No coach data available, using fallback');
             currentCoach = {
@@ -536,16 +589,29 @@ async function initApp() {
             };
         }
 
+        // Get or create coach in database
         let coach = await db.getCoach(currentCoach.telegram_id);
+        console.log('Found coach in database:', coach);
+        
         if (!coach) {
+            console.log('Coach not found, creating new coach...');
             try {
                 coach = await db.createCoach(currentCoach);
+                console.log('Created new coach:', coach);
             } catch (error) {
                 console.error('Failed to create coach:', error);
-                coach = currentCoach; // Use current coach data as fallback
+                coach = { ...currentCoach, id: 1 }; // Use fallback with ID
             }
         }
+        
+        // Ensure coach has an ID
+        if (!coach.id) {
+            console.warn('Coach missing ID, using fallback');
+            coach.id = 1; // Fallback ID for aNmOff
+        }
+        
         currentCoach = coach;
+        console.log('Final coach data:', currentCoach);
         
         await loadData();
         setupEventListeners();
@@ -571,9 +637,11 @@ async function initApp() {
 async function loadData() {
     try {
         if (!currentCoach?.id) {
-            console.warn('No coach ID available');
+            console.warn('No coach ID available for loading data');
             return;
         }
+
+        console.log('Loading data for coach ID:', currentCoach.id);
 
         const [clientsData, workoutsData, stats] = await Promise.all([
             db.getClients(currentCoach.id),
@@ -583,6 +651,10 @@ async function loadData() {
 
         clients = clientsData || [];
         workouts = workoutsData || [];
+
+        console.log('Loaded clients:', clients);
+        console.log('Loaded workouts:', workouts);
+        console.log('Loaded stats:', stats);
 
         renderStats(stats);
         renderTodaySchedule();
@@ -646,6 +718,13 @@ async function handleAddClient(e) {
     try {
         showLoading(true);
         
+        console.log('Adding client for coach:', currentCoach);
+        
+        if (!currentCoach?.id) {
+            showToast('Ошибка: ID тренера не найден', 'error');
+            return;
+        }
+        
         const clientData = {
             coach_id: currentCoach.id,
             name: document.getElementById('client-name').value.trim(),
@@ -654,12 +733,20 @@ async function handleAddClient(e) {
             fitness_goal: document.getElementById('client-goal').value.trim() || null
         };
 
+        console.log('Client data to be created:', clientData);
+
         if (!clientData.name) {
             showToast('Введите имя клиента', 'error');
             return;
         }
 
-        await db.createClient(clientData);
+        const newClient = await db.createClient(clientData);
+        console.log('Successfully created client:', newClient);
+        
+        if (!newClient) {
+            throw new Error('Failed to create client - no data returned');
+        }
+        
         await loadData();
         
         closeModal('add-client-modal');
@@ -667,7 +754,7 @@ async function handleAddClient(e) {
         
     } catch (error) {
         console.error('Add client error:', error);
-        showToast('Ошибка при добавлении клиента', 'error');
+        showToast(`Ошибка при добавлении клиента: ${error.message}`, 'error');
     } finally {
         showLoading(false);
     }
@@ -678,6 +765,11 @@ async function handleAddWorkout(e) {
     
     try {
         showLoading(true);
+        
+        if (!currentCoach?.id) {
+            showToast('Ошибка: ID тренера не найден', 'error');
+            return;
+        }
         
         const clientId = parseInt(document.getElementById('workout-client').value);
         const workoutType = document.getElementById('workout-type').value.trim();
@@ -709,7 +801,15 @@ async function handleAddWorkout(e) {
             workout_type: workoutType
         };
 
-        await db.createWorkout(workoutData);
+        console.log('Workout data to be created:', workoutData);
+
+        const newWorkout = await db.createWorkout(workoutData);
+        console.log('Successfully created workout:', newWorkout);
+        
+        if (!newWorkout) {
+            throw new Error('Failed to create workout - no data returned');
+        }
+        
         await loadData();
         
         closeModal('add-workout-modal');
@@ -719,7 +819,7 @@ async function handleAddWorkout(e) {
         
     } catch (error) {
         console.error('Add workout error:', error);
-        showToast('Ошибка при создании тренировки', 'error');
+        showToast(`Ошибка при создании тренировки: ${error.message}`, 'error');
     } finally {
         showLoading(false);
     }
@@ -834,6 +934,8 @@ function switchToClientDetail(clientId) {
 
 // Utility functions
 function showToast(message, type = 'success') {
+    console.log(`Toast: ${message} (${type})`);
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
