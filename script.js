@@ -1,19 +1,21 @@
 /**
  * ТВОЙТРЕНЕР - Coach Assistant Web App
- * Modern iOS-style interface with full functionality
+ * Updated for new Supabase instance with improved error handling
  */
 
-// Configuration
+// Configuration - Updated to new Supabase instance
 const CONFIG = {
-    supabaseUrl: 'https://hgnryhvtcthzmkxxbblz.supabase.co',
-    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnbnJ5aHZ0Y3Roem1reHhiYmx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzkzMDYsImV4cCI6MjA2MzY1NTMwNn0.ogubE6dLeKO9ziYyGVZ1UivRYHGZDpEfwExdNci4oCQ',
-    telegramWebApp: window.Telegram?.WebApp
+    supabaseUrl: 'https://nludsxoqhhlfpehhblgg.supabase.co',
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdWRzeG9xaGhsZnBlaGhibGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyODUyNjEsImV4cCI6MjA2Mzg2MTI2MX0.o6DtsgGgpuNQFIL9Gh2Ba-xScVW20dU_IDg4QAYYXxQ',
+    telegramWebApp: window.Telegram?.WebApp,
+    serverUrl: window.location.origin
 };
 
 // Global state
 let currentCoach = null;
 let clients = [];
 let workouts = [];
+let dbConnectionStatus = 'unknown';
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
@@ -32,17 +34,17 @@ function initTelegramWebApp() {
             };
         }
     } else {
-        // Demo mode for testing
+        // Demo mode for testing - using existing coach from database
         currentCoach = {
-            telegram_id: 'demo_user_' + Math.random().toString(36).substr(2, 9),
-            name: 'Demo User',
-            username: 'demo'
+            telegram_id: '234104161', // aNmOff from your database
+            name: 'aNmOff',
+            username: 'aNmOff'
         };
-        console.log('Running in demo mode');
+        console.log('Running in demo mode with existing coach');
     }
 }
 
-// Database operations
+// Database operations with improved error handling
 class Database {
     constructor() {
         this.baseUrl = `${CONFIG.supabaseUrl}/rest/v1`;
@@ -54,6 +56,19 @@ class Database {
         };
     }
 
+    async checkServerStatus() {
+        try {
+            const response = await fetch(`${CONFIG.serverUrl}/api/db-status`);
+            const status = await response.json();
+            dbConnectionStatus = status.status;
+            return status;
+        } catch (error) {
+            console.error('Server status check error:', error);
+            dbConnectionStatus = 'error';
+            return { status: 'error', message: 'Server not responding' };
+        }
+    }
+
     async request(endpoint, options = {}) {
         try {
             const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -62,83 +77,204 @@ class Database {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            return await response.json();
+            const data = await response.json();
+            dbConnectionStatus = 'connected';
+            return data;
         } catch (error) {
             console.error('Database request error:', error);
-            showError('Ошибка подключения к базе данных');
+            dbConnectionStatus = 'error';
+            
+            if (error.message.includes('Failed to fetch')) {
+                showError('Проблема с подключением к интернету');
+            } else if (error.message.includes('401')) {
+                showError('Ошибка авторизации в базе данных');
+            } else if (error.message.includes('404')) {
+                showError('Ресурс не найден в базе данных');
+            } else {
+                showError('Ошибка подключения к базе данных');
+            }
             throw error;
         }
     }
 
-    // Coach operations
+    // Coach operations - adapted for existing structure
     async getCoach(telegramId) {
-        const coaches = await this.request(`/coaches?telegram_id=eq.${telegramId}`);
-        return coaches[0] || null;
+        try {
+            const coaches = await this.request(`/coaches?telegram_id=eq.${telegramId}`);
+            return coaches[0] || null;
+        } catch (error) {
+            console.error('Error getting coach:', error);
+            return null;
+        }
     }
 
     async createCoach(coach) {
-        const coaches = await this.request('/coaches', {
-            method: 'POST',
-            body: JSON.stringify(coach)
-        });
-        return coaches[0];
+        try {
+            const coaches = await this.request('/coaches', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...coach,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+            return coaches[0];
+        } catch (error) {
+            console.error('Error creating coach:', error);
+            throw error;
+        }
     }
 
-    // Client operations
+    // Client operations - adapted for existing structure
     async getClients(coachId) {
-        return await this.request(`/clients?coach_id=eq.${coachId}&order=created_at.desc`);
+        try {
+            // Try direct approach first
+            let clients = await this.request(`/clients?coach_id=eq.${coachId}&order=created_at.desc`);
+            
+            // If no results, try through trainer_client relationship
+            if (!clients || clients.length === 0) {
+                const relations = await this.request(`/trainer_client?trainer_id=eq.${coachId}`);
+                if (relations && relations.length > 0) {
+                    const clientIds = relations.map(r => r.client_id).join(',');
+                    clients = await this.request(`/clients?id=in.(${clientIds})&order=created_at.desc`);
+                }
+            }
+            
+            return clients || [];
+        } catch (error) {
+            console.error('Error getting clients:', error);
+            return [];
+        }
     }
 
     async createClient(client) {
-        const clients = await this.request('/clients', {
-            method: 'POST',
-            body: JSON.stringify(client)
-        });
-        return clients[0];
+        try {
+            // Check if coach_id column exists
+            const clients = await this.request('/clients', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...client,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+            
+            const newClient = clients[0];
+            
+            // Also create relationship in trainer_client if it exists
+            try {
+                await this.request('/trainer_client', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        trainer_id: client.coach_id,
+                        client_id: newClient.id,
+                        created_at: new Date().toISOString()
+                    })
+                });
+            } catch (relationError) {
+                console.log('trainer_client relationship not created:', relationError);
+            }
+            
+            return newClient;
+        } catch (error) {
+            console.error('Error creating client:', error);
+            throw error;
+        }
     }
 
     async deleteClient(clientId) {
-        return await this.request(`/clients?id=eq.${clientId}`, {
-            method: 'DELETE'
-        });
+        try {
+            // Delete from trainer_client relationship first
+            try {
+                await this.request(`/trainer_client?client_id=eq.${clientId}`, {
+                    method: 'DELETE'
+                });
+            } catch (relationError) {
+                console.log('trainer_client relationship not deleted:', relationError);
+            }
+            
+            // Delete client
+            return await this.request(`/clients?id=eq.${clientId}`, {
+                method: 'DELETE'
+            });
+        } catch (error) {
+            console.error('Error deleting client:', error);
+            throw error;
+        }
     }
 
     // Workout operations
     async getWorkouts(coachId) {
-        return await this.request(`/workouts?coach_id=eq.${coachId}&order=date.desc&limit=50`);
+        try {
+            // Try direct approach first
+            let workouts = await this.request(`/workouts?coach_id=eq.${coachId}&order=date.desc&limit=50`);
+            
+            // If no results, try through client relationships
+            if (!workouts || workouts.length === 0) {
+                const clients = await this.getClients(coachId);
+                if (clients && clients.length > 0) {
+                    const clientIds = clients.map(c => c.id).join(',');
+                    workouts = await this.request(`/workouts?client_id=in.(${clientIds})&order=date.desc&limit=50`);
+                }
+            }
+            
+            return workouts || [];
+        } catch (error) {
+            console.error('Error getting workouts:', error);
+            return [];
+        }
     }
 
     async createWorkout(workout) {
-        const workouts = await this.request('/workouts', {
-            method: 'POST',
-            body: JSON.stringify(workout)
-        });
-        return workouts[0];
+        try {
+            const workouts = await this.request('/workouts', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...workout,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+            });
+            return workouts[0];
+        } catch (error) {
+            console.error('Error creating workout:', error);
+            throw error;
+        }
     }
 
     async updateWorkout(workoutId, updates) {
-        return await this.request(`/workouts?id=eq.${workoutId}`, {
-            method: 'PATCH',
-            body: JSON.stringify(updates)
-        });
+        try {
+            return await this.request(`/workouts?id=eq.${workoutId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    ...updates,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        } catch (error) {
+            console.error('Error updating workout:', error);
+            throw error;
+        }
     }
 
     // Stats
     async getStats(coachId) {
         try {
-            const [clientsResult, workoutsResult, completedResult] = await Promise.all([
-                this.request(`/clients?coach_id=eq.${coachId}`),
-                this.request(`/workouts?coach_id=eq.${coachId}`),
-                this.request(`/workouts?coach_id=eq.${coachId}&status=eq.completed`)
+            const [clientsResult, workoutsResult] = await Promise.all([
+                this.getClients(coachId),
+                this.getWorkouts(coachId)
             ]);
+
+            const completedWorkouts = workoutsResult.filter(w => w.status === 'completed');
 
             return {
                 clients_count: clientsResult.length,
                 workouts_count: workoutsResult.length,
-                completed_workouts: completedResult.length
+                completed_workouts: completedWorkouts.length
             };
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -236,6 +372,21 @@ function switchToTab(tabName) {
     });
     document.getElementById(tabName).classList.add('active');
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+}
+
+function updateConnectionStatus() {
+    const statusElement = document.getElementById('connection-status');
+    if (!statusElement) return;
+    
+    const statusConfig = {
+        'connected': { text: '🟢 Подключено', color: '#34C759' },
+        'error': { text: '🔴 Ошибка подключения', color: '#FF3B30' },
+        'unknown': { text: '🟡 Проверка...', color: '#FF9500' }
+    };
+    
+    const config = statusConfig[dbConnectionStatus] || statusConfig.unknown;
+    statusElement.textContent = config.text;
+    statusElement.style.color = config.color;
 }
 
 function animateCounter(element, targetValue, duration = 800) {
@@ -457,6 +608,14 @@ async function initApp() {
         showLoading(true);
         initTelegramWebApp();
         
+        // Check server and database status first
+        const serverStatus = await db.checkServerStatus();
+        updateConnectionStatus();
+        
+        if (serverStatus.status === 'error') {
+            console.warn('Server/Database connection issues:', serverStatus.message);
+        }
+        
         if (!currentCoach?.telegram_id) {
             showError('Не удалось инициализировать пользовательскую сессию');
             return;
@@ -464,7 +623,12 @@ async function initApp() {
 
         let coach = await db.getCoach(currentCoach.telegram_id);
         if (!coach) {
-            coach = await db.createCoach(currentCoach);
+            try {
+                coach = await db.createCoach(currentCoach);
+            } catch (error) {
+                console.error('Failed to create coach:', error);
+                coach = currentCoach; // Use current coach data as fallback
+            }
         }
         currentCoach = coach;
         
@@ -480,6 +644,12 @@ async function initApp() {
         console.error('App initialization error:', error);
         showError('Ошибка инициализации системы');
         showLoading(false);
+        
+        // Show app anyway with empty data
+        setTimeout(() => {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+        }, 1000);
     }
 }
 
@@ -501,6 +671,8 @@ async function loadData() {
         renderWorkoutsList();
         populateClientSelect();
         
+        updateConnectionStatus();
+        
     } catch (error) {
         console.error('Data loading error:', error);
         clients = [];
@@ -511,7 +683,8 @@ async function loadData() {
         renderClientsList();
         renderWorkoutsList();
         populateClientSelect();
-        showError('Ошибка синхронизации данных');
+        updateConnectionStatus();
+        showToast('Ошибка загрузки данных', 'error');
     }
 }
 
