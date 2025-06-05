@@ -347,6 +347,85 @@
             </div>
         </div>
 
+        <!-- Workout Program Modal -->
+        <div id="workout-program-modal" class="modal">
+            <div class="modal-content workout-program-modal">
+                <div class="modal-header">
+                    <h3>Программа тренировки</h3>
+                    <button class="close-btn" onclick="closeModal('workout-program-modal')">&times;</button>
+                </div>
+
+                <div class="client-info" id="workout-client-info">
+                    <div class="client-name">Выберите клиента</div>
+                    <div class="client-details">Цель: Не указана • Дата: Не выбрана</div>
+                </div>
+
+                <form id="workout-program-form">
+                    <div class="form-group">
+                        <label class="form-label">Клиент</label>
+                        <select class="form-input" id="program-workout-client" required>
+                            <option value="">Выберите клиента</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Дата и время тренировки</label>
+                        <input type="datetime-local" class="form-input" id="program-workout-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Тип тренировки</label>
+                        <select class="form-input" id="program-workout-type" required>
+                            <option value="">Выберите тип</option>
+                            <option value="upper_body">Верх тела</option>
+                            <option value="leg_day">День ног</option>
+                            <option value="push_day">День жимовых</option>
+                            <option value="pull_day">День тяговых</option>
+                            <option value="full_body">Полное тело</option>
+                            <option value="strength_training">Силовая тренировка</option>
+                            <option value="cardio">Кардио</option>
+                            <option value="hiit">HIIT</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Общие заметки к тренировке</label>
+                        <textarea class="form-input form-textarea" id="program-workout-notes" placeholder="Разминка, особые указания, настроение клиента..."></textarea>
+                    </div>
+
+                    <div class="exercises-section">
+                        <h3 class="section-title">Упражнения</h3>
+                        
+                        <div class="exercise-templates">
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Жим лежа')">Жим лежа</button>
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Приседания')">Приседания</button>
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Становая тяга')">Становая тяга</button>
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Подтягивания')">Подтягивания</button>
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Жим гантелей')">Жим гантелей</button>
+                            <button type="button" class="template-btn" onclick="addExerciseTemplate('Тяга штанги')">Тяга штанги</button>
+                        </div>
+
+                        <button type="button" class="add-exercise-btn" onclick="addCustomExercise()">
+                            + Добавить упражнение
+                        </button>
+
+                        <div id="exercises-container">
+                            <!-- Упражнения будут добавляться здесь -->
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('workout-program-modal')">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Сохранить программу
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <a href="#" class="nav-item active" data-tab="dashboard">

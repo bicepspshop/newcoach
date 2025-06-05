@@ -539,6 +539,9 @@ function renderWorkoutsList() {
             'cancelled': 'Отменена'
         }[workout.status] || workout.status;
 
+        const hasExercises = workout.exercises && workout.exercises.length > 0;
+        const exercisesCount = hasExercises ? workout.exercises.length : 0;
+
         return `
             <div class="workout-card">
                 <div class="workout-header">
@@ -549,17 +552,21 @@ function renderWorkoutsList() {
                     ${workout.workout_type ? `<div>Тип: ${getWorkoutTypeDisplayName(workout.workout_type)}</div>` : ''}
                     <div>Дата: ${date.toLocaleDateString('ru-RU')} в ${date.toLocaleTimeString('ru-RU').slice(0, 5)}</div>
                     ${workout.notes ? `<div>Заметки: ${escapeHtml(workout.notes)}</div>` : ''}
+                    ${hasExercises ? `<div>💪 Упражнений: ${exercisesCount}</div>` : ''}
                 </div>
-                ${workout.status === 'planned' ? `
-                    <div class="workout-actions">
-                        <button class="btn btn-primary btn-sm" onclick="completeWorkout(${workout.id})">
+                <div class="workout-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openWorkoutProgram(${workout.id})">
+                        ${hasExercises ? 'Редактировать программу' : 'Составить программу'}
+                    </button>
+                    ${workout.status === 'planned' ? `
+                        <button class="btn btn-success btn-sm" onclick="completeWorkout(${workout.id})">
                             Завершить
                         </button>
                         <button class="btn btn-secondary btn-sm" onclick="cancelWorkout(${workout.id})">
                             Отменить
                         </button>
-                    </div>
-                ` : ''}
+                    ` : ''}
+                </div>
             </div>
         `;
     }).join('');
@@ -693,6 +700,11 @@ function setupEventListeners() {
 
     document.getElementById('add-client-form').addEventListener('submit', handleAddClient);
     document.getElementById('add-workout-form').addEventListener('submit', handleAddWorkout);
+    document.getElementById('workout-program-form').addEventListener('submit', handleWorkoutProgramSubmit);
+    
+    // Add event listeners for workout program form changes
+    document.getElementById('program-workout-client').addEventListener('change', updateClientInfo);
+    document.getElementById('program-workout-date').addEventListener('change', updateClientInfo);
 
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
@@ -892,6 +904,11 @@ async function cancelWorkout(workoutId) {
     }
 }
 
+// Workout Program functionality
+let currentWorkoutForProgram = null;
+let exerciseCounter = 0;
+let workoutExercises = [];
+
 // Global functions for HTML onclick events
 function openAddClientModal() {
     document.getElementById('add-client-form').reset();
@@ -913,6 +930,74 @@ function openAddWorkoutModal() {
     document.getElementById('workout-date').value = tomorrow.toISOString().slice(0, 16);
     
     showModal('add-workout-modal');
+}
+
+function openWorkoutProgram(workoutId) {
+    const workout = workouts.find(w => w.id === workoutId);
+    if (!workout) {
+        showToast('Тренировка не найдена', 'error');
+        return;
+    }
+    
+    currentWorkoutForProgram = workout;
+    initWorkoutProgram(workout);
+    showModal('workout-program-modal');
+}
+
+function initWorkoutProgram(workout) {
+    // Populate client select
+    const clientSelect = document.getElementById('program-workout-client');
+    clientSelect.innerHTML = '<option value="">Выберите клиента</option>' + 
+        clients.map(client => `<option value="${client.id}">${escapeHtml(client.name)}</option>`).join('');
+    
+    // Set current values
+    clientSelect.value = workout.client_id;
+    document.getElementById('program-workout-date').value = workout.date.slice(0, 16);
+    document.getElementById('program-workout-type').value = workout.workout_type || '';
+    document.getElementById('program-workout-notes').value = workout.notes || '';
+    
+    // Update client info display
+    updateClientInfo();
+    
+    // Load existing exercises or start fresh
+    workoutExercises = [];
+    exerciseCounter = 0;
+    
+    if (workout.exercises && workout.exercises.length > 0) {
+        workout.exercises.forEach(exercise => {
+            addExercise(exercise.name, exercise.sets, exercise.notes);
+        });
+    }
+    
+    renderExercises();
+}
+
+function updateClientInfo() {
+    const clientId = parseInt(document.getElementById('program-workout-client').value);
+    const client = clients.find(c => c.id === clientId);
+    const date = document.getElementById('program-workout-date').value;
+    
+    const clientInfoDiv = document.getElementById('workout-client-info');
+    
+    if (client && date) {
+        const formattedDate = new Date(date).toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        clientInfoDiv.innerHTML = `
+            <div class="client-name">${escapeHtml(client.name)}</div>
+            <div class="client-details">Цель: ${client.fitness_goal ? getGoalDisplayName(client.fitness_goal) : 'Не указана'} • Дата: ${formattedDate}</div>
+        `;
+    } else {
+        clientInfoDiv.innerHTML = `
+            <div class="client-name">Выберите клиента</div>
+            <div class="client-details">Цель: Не указана • Дата: Не выбрана</div>
+        `;
+    }
 }
 
 function closeApp() {
@@ -980,9 +1065,182 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+function addExerciseTemplate(exerciseName) {
+    addExercise(exerciseName);
+}
+
+function addCustomExercise() {
+    const exerciseName = prompt('Введите название упражнения:');
+    if (exerciseName && exerciseName.trim()) {
+        addExercise(exerciseName.trim());
+    }
+}
+
+function addExercise(name, existingSets = null, notes = '') {
+    exerciseCounter++;
+    const exerciseId = `exercise-${exerciseCounter}`;
+    
+    const exercise = {
+        id: exerciseId,
+        name: name,
+        notes: notes,
+        sets: existingSets || [
+            { reps: '', weight: '', rest: '' }
+        ]
+    };
+    
+    workoutExercises.push(exercise);
+    renderExercises();
+}
+
+function removeExercise(exerciseId) {
+    workoutExercises = workoutExercises.filter(ex => ex.id !== exerciseId);
+    renderExercises();
+}
+
+function addSet(exerciseId) {
+    const exercise = workoutExercises.find(ex => ex.id === exerciseId);
+    if (exercise) {
+        exercise.sets.push({ reps: '', weight: '', rest: '' });
+        renderExercises();
+    }
+}
+
+function removeSet(exerciseId, setIndex) {
+    const exercise = workoutExercises.find(ex => ex.id === exerciseId);
+    if (exercise && exercise.sets.length > 1) {
+        exercise.sets.splice(setIndex, 1);
+        renderExercises();
+    }
+}
+
+function updateSetData(exerciseId, setIndex, field, value) {
+    const exercise = workoutExercises.find(ex => ex.id === exerciseId);
+    if (exercise && exercise.sets[setIndex]) {
+        exercise.sets[setIndex][field] = value;
+    }
+}
+
+function updateExerciseNotes(exerciseId, notes) {
+    const exercise = workoutExercises.find(ex => ex.id === exerciseId);
+    if (exercise) {
+        exercise.notes = notes;
+    }
+}
+
+function renderExercises() {
+    const container = document.getElementById('exercises-container');
+    
+    if (workoutExercises.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Добавьте упражнения для программы тренировки</p>';
+        return;
+    }
+
+    container.innerHTML = workoutExercises.map(exercise => `
+        <div class="exercise-item">
+            <div class="exercise-header">
+                <div class="exercise-name">${escapeHtml(exercise.name)}</div>
+                <button type="button" class="remove-exercise" onclick="removeExercise('${exercise.id}')">&times;</button>
+            </div>
+            
+            <div class="sets-container">
+                <div class="sets-header">
+                    <div>№</div>
+                    <div>Повторения</div>
+                    <div>Вес (кг)</div>
+                    <div>Отдых (мин)</div>
+                    <div></div>
+                </div>
+                
+                ${exercise.sets.map((set, index) => `
+                    <div class="set-row">
+                        <div class="set-number">${index + 1}</div>
+                        <input type="number" class="set-input" placeholder="12" 
+                               value="${set.reps}" 
+                               onchange="updateSetData('${exercise.id}', ${index}, 'reps', this.value)">
+                        <input type="number" class="set-input" placeholder="50" step="0.5"
+                               value="${set.weight}" 
+                               onchange="updateSetData('${exercise.id}', ${index}, 'weight', this.value)">
+                        <input type="number" class="set-input" placeholder="2" step="0.5"
+                               value="${set.rest || ''}" 
+                               onchange="updateSetData('${exercise.id}', ${index}, 'rest', this.value)">
+                        <button type="button" class="remove-set" onclick="removeSet('${exercise.id}', ${index})"
+                                ${exercise.sets.length <= 1 ? 'style="opacity: 0.3; pointer-events: none;"' : ''}>
+                            &times;
+                        </button>
+                    </div>
+                `).join('')}
+                
+                <button type="button" class="add-set-btn" onclick="addSet('${exercise.id}')">
+                    + Добавить подход
+                </button>
+            </div>
+
+            <div class="exercise-notes">
+                <textarea class="notes-input" placeholder="Заметки к упражнению (техника, особенности выполнения...)"
+                          onchange="updateExerciseNotes('${exercise.id}', this.value)">${exercise.notes || ''}</textarea>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function handleWorkoutProgramSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        showLoading(true);
+        
+        const clientId = parseInt(document.getElementById('program-workout-client').value);
+        const date = document.getElementById('program-workout-date').value;
+        const workoutType = document.getElementById('program-workout-type').value;
+        const notes = document.getElementById('program-workout-notes').value;
+        
+        if (!clientId || !date || !workoutType) {
+            showToast('Заполните все обязательные поля', 'error');
+            return;
+        }
+        
+        // Prepare exercises data for database
+        const exercisesData = workoutExercises.map(exercise => ({
+            name: exercise.name,
+            notes: exercise.notes || '',
+            sets: exercise.sets.map(set => ({
+                reps: parseInt(set.reps) || 0,
+                weight: parseFloat(set.weight) || 0,
+                rest: parseFloat(set.rest) || 0
+            }))
+        }));
+        
+        const updateData = {
+            client_id: clientId,
+            date: date,
+            workout_type: workoutType,
+            notes: notes,
+            exercises: exercisesData
+        };
+        
+        console.log('Updating workout with program:', updateData);
+        
+        await db.updateWorkout(currentWorkoutForProgram.id, updateData);
+        
+        await loadData();
+        closeModal('workout-program-modal');
+        
+        const client = clients.find(c => c.id === clientId);
+        showToast(`Программа тренировки для ${client?.name} сохранена`);
+        
+    } catch (error) {
+        console.error('Save workout program error:', error);
+        showToast(`Ошибка при сохранении программы: ${error.message}`, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // Export functions for global access
 window.openAddClientModal = openAddClientModal;
 window.openAddWorkoutModal = openAddWorkoutModal;
+window.openWorkoutProgram = openWorkoutProgram;
 window.closeModal = closeModal;
 window.switchToTab = switchToTab;
 window.deleteClient = deleteClient;
@@ -992,3 +1250,11 @@ window.cancelWorkout = cancelWorkout;
 window.closeApp = closeApp;
 window.toggleMenu = toggleMenu;
 window.switchToClientDetail = switchToClientDetail;
+window.addExerciseTemplate = addExerciseTemplate;
+window.addCustomExercise = addCustomExercise;
+window.removeExercise = removeExercise;
+window.addSet = addSet;
+window.removeSet = removeSet;
+window.updateSetData = updateSetData;
+window.updateExerciseNotes = updateExerciseNotes;
+window.updateClientInfo = updateClientInfo;
