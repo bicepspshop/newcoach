@@ -5,8 +5,8 @@
 
 // Configuration
 const CONFIG = {
-    supabaseUrl: 'https://hgnryhvtcthzmkxxbblz.supabase.co',
-    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnbnJ5aHZ0Y3Roem1reHhiYmx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzkzMDYsImV4cCI6MjA2MzY1NTMwNn0.ogubE6dLeKO9ziYyGVZ1UivRYHGZDpEfwExdNci4oCQ',
+    supabaseUrl: 'https://nludsxoqhhlfpehhblgg.supabase.co',
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sdWRzeG9xaGhsZnBlaGhibGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyODUyNjEsImV4cCI6MjA2Mzg2MTI2MX0.o6DtsgGgpuNQFIL9Gh2Ba-xScVW20dU_IDg4QAYYXxQ',
     telegramWebApp: window.Telegram?.WebApp
 };
 

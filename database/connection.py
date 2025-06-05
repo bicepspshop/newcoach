@@ -16,6 +16,17 @@ except ImportError as e:
     print(f"⚠️ asyncpg not available: {e}")
     print("🔄 Falling back to HTTP REST API")
 
+# Force HTTP API mode for Python 3.13 compatibility
+if ASYNCPG_AVAILABLE:
+    try:
+        # Test if asyncpg works with current Python version
+        import sys
+        if sys.version_info >= (3, 13):
+            print("⚠️ Python 3.13 detected - forcing HTTP API mode for compatibility")
+            ASYNCPG_AVAILABLE = False
+    except:
+        ASYNCPG_AVAILABLE = False
+
 if ASYNCPG_AVAILABLE:
     # Use original asyncpg implementation
     import asyncio
